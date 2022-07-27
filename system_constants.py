@@ -59,4 +59,7 @@ lmda = 0.5 # used for Relative Disagreement Model eg. 0.1
 
 # Network Structure
 
+#NETWORK_NAME = 'fully_connected'
 NETWORK_NAME = 'watts_strogatz'
+num_neighbours = 10
+rewiring_prob = 0.3

@@ -189,7 +189,8 @@ class Session:
         """
         Populate market with betting agents as specified in config file
         """
-        def initAgent(name, quantity, id):
+        #def initAgent(name, quantity, id):
+        def initAgent(name, id):
 
             uncertainty = 1.0
 
@@ -220,10 +221,13 @@ class Session:
         for agent in config.agents:
             type = agent[0]
             for i in range(agent[1]):
-                self.bettingAgents[id] = initAgent(agent[0], agent[1], id)
+                #self.bettingAgents[id] = initAgent(agent[0], agent[1], id)
+                self.bettingAgents[id] = initAgent(agent[0], id)
                 id = id + 1
 
-
+        random.shuffle(self.bettingAgents) # ensures all types of bettors are mixed up rather than all adjacent
+        
+        print(self.bettingAgents)
 
 
     def initialiseExchanges(self):

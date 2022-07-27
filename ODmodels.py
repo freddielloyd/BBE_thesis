@@ -2,6 +2,8 @@ import random
 from system_constants import *
 from network_structures import *
 
+import numpy as np
+
 
 def calculate_ema(odds, timesteps, smoothing=2):
     if len(odds) < timesteps:
@@ -113,63 +115,141 @@ class OpinionDynamicsPlatform:
         self.number_of_conversations = 0
         
         self.network_structure = network_structure
-        
-        if network_structure == None:
 
-            self.all_influenced_by_opinions = [bettor for bettor in bettors if bettor.influenced_by_opinions == 1]
-            self.all_opinionated = [bettor for bettor in bettors if bettor.opinionated == 1]
-    
-            self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
-                                                     bettor.in_conversation == 0]
-            self.available_opinionated = [bettor for bettor in self.all_opinionated if
-                                          bettor.in_conversation == 0]
-            #
-            # self.unavailable_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
-            #                                            bettor.in_conversation == 1]
-            # self.unavailable_opinionated = [bettor for bettor in self.all_opinionated if
-            #                                 bettor.in_conversation == 1]
+        self.all_influenced_by_opinions = [bettor for bettor in bettors if bettor.influenced_by_opinions == 1]
+        self.all_opinionated = [bettor for bettor in bettors if bettor.opinionated == 1]
+
+        self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
+                                                 bettor.in_conversation == 0]
+        self.available_opinionated = [bettor for bettor in self.all_opinionated if
+                                      bettor.in_conversation == 0]
+        
+        #
+        # self.unavailable_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
+        #                                            bettor.in_conversation == 1]
+        # self.unavailable_opinionated = [bettor for bettor in self.all_opinionated if
+        #                                 bettor.in_conversation == 1]
+        
+        if self.network_structure == 'watts_strogatz':
             
-        if network_structure == 'watts_strogatz':
+            watts_strogatz = WattsStrogatz(len(self.all_opinionated), num_neighbours, rewiring_prob)
             
-            watts_strogatz = WattsStrogatz(200, 60, 0.3)
+            self.network = watts_strogatz.create_network()
             
-            network = watts_strogatz.create_network()
             
             #network.vertex()
-           # network.degree(5)
+            #network.degree(5)
             
-            
-            
-            
-            
+            for i in range(len(self.network.vertex())): 
+
+                print('node:', np.sort(self.network.vertex())[i], ', degree:', self.network.degree(i), ', edges: ', self.network.edge(i))
+
+
             
             
             
 
     def initiate_conversations(self, time):
+        
+        if self.network_structure == 'fully_connected':
 
-        for bettor in self.available_influenced_by_opinions:
+            for bettor in self.available_influenced_by_opinions:
+    
+                bettor1 = bettor
+                bettor2 = bettor
+    
+                while bettor1 == bettor2:
+                    if len(self.available_influenced_by_opinions) == 0 or len(self.available_opinionated) < 2:
+                        return
+                    else:
+                        bettor2 = random.sample(self.available_opinionated, 1)[0]
+    
+                id = self.number_of_conversations
+    
+                Conversation = LocalConversation(id, bettor1, bettor2, time, self.model)
+    
+                self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
+                                                         bettor.in_conversation == 0]
+                self.available_opinionated = [bettor for bettor in self.all_opinionated if
+                                              bettor.in_conversation == 0]
+                
+    
+                self.conversations.append(Conversation)
+                self.number_of_conversations = self.number_of_conversations + 1
+            
+            
+        if self.network_structure == 'watts_strogatz':
+            
 
-            bettor1 = bettor
-            bettor2 = bettor
+            #counter = 0
+            
+            for bettor in self.available_influenced_by_opinions:
+    
+                bettor1 = bettor
+                bettor2 = bettor
+                
+                self.bettor1_id = self.all_opinionated.index(bettor1)
+                
+                #self.bettor_id = len(self.all_opinionated) - len(self.all_influenced_by_opinions) + counter
+                #print(self.bettor1_id)
+                self.bettor_neighbours_ids = self.network.edge(self.bettor1_id)
+                #print(self.bettor_neighbours_ids)
+                
+                #counter = counter + 1
+                
+                
+                self.all_neighbours = []
+                
+                for i in self.bettor_neighbours_ids:
+                    
+                    self.all_neighbours.append(self.all_opinionated[i])
+                
+                #print(self.available_neighbours)
+                
+                self.available_neighbours = [bettor for bettor in self.all_neighbours if
+                                              bettor.in_conversation == 0]
+                
+                
+    
+                while bettor1 == bettor2:
+                    if len(self.available_influenced_by_opinions) == 0 or len(self.available_neighbours) < 2:
+                        return
+                    else:
+                        bettor2 = random.sample(self.available_neighbours, 1)[0]
 
-            while bettor1 == bettor2:
-                if len(self.available_influenced_by_opinions) == 0 or len(self.available_opinionated) < 2:
-                    return
-                else:
-                    bettor2 = random.sample(self.available_opinionated, 1)[0]
 
-            id = self.number_of_conversations
+                id = self.number_of_conversations
+                
+                self.bettor2_id = self.all_opinionated.index(bettor2)
+                
+                
+                
+                print('bettor1: ', bettor1)
+                print('bettor1 id: ', self.bettor1_id)
+                print('bettor1 neighbours: ', self.bettor_neighbours_ids)
+                
+                print('bettor2: ', bettor2)
+                print('bettor2 id: ', self.bettor2_id)
+                #print('bettor2 neighbours: ', self.bettor_neighbours_ids)
+                
+                print()
+    
+                Conversation = LocalConversation(id, bettor1, bettor2, time, self.model)
+    
+                self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
+                                                         bettor.in_conversation == 0]
+                
+                #self.available_neighbours = [bettor for bettor in self.all_opinionated if
+                #                              bettor.in_conversation == 0]
+                
+                #self.available_opinionated = [bettor for bettor in self.all_opinionated if
+                #                              bettor.in_conversation == 0]
+    
+                self.conversations.append(Conversation)
+                self.number_of_conversations = self.number_of_conversations + 1
 
-            Conversation = LocalConversation(id, bettor1, bettor2, time, self.model)
 
-            self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
-                                                     bettor.in_conversation == 0]
-            self.available_opinionated = [bettor for bettor in self.all_opinionated if
-                                          bettor.in_conversation == 0]
 
-            self.conversations.append(Conversation)
-            self.number_of_conversations = self.number_of_conversations + 1
 
     def settle_opinions(self, winningCompetitor):
 
