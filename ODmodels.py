@@ -70,12 +70,26 @@ class LocalConversation:
 
         # if difference in opinion is within deviation threshold
         if abs(X_i - X_j) <= delta:
-            if self.bettor1.influenced_by_opinions == 1:
-                i_update = w * X_i + (1 - w) * X_j
-                self.bettor1.set_opinion(i_update)
-            if self.bettor2.influenced_by_opinions == 1:
-                j_update = w * X_j + (1 - w) * X_i
-                self.bettor2.set_opinion(j_update)
+            
+            opinion_gap = abs(X_i - X_j)
+            fuzzy_bc = fuzzy_BC()
+            
+            mfx = 'triangular'     # triangular or trapezoidal
+            mfxs = fuzzy_bc.fuzzification(mfx, opinion_gap)
+            
+            #y1 = mfxs[0][int(opinion_gap*100)]
+            #y2 = mfxs[1][int(opinion_gap*100)]
+            
+            yvals = fuzzy_bc.defuzz_yvals(mfxs, [0.18,0.18]) # this obtains same as y1 and y2 above
+
+            defoe = fuzzy_bc.defuzz_xvals(mfxs, 'centroid')            
+            
+            
+            defuzz_x = fuzzy_bc.defuzz_xvals(mfxs, 'centroid')
+            defuzz_y = fuzzy_bc.defuzz_yvals(mfxs, defuzz_x)
+                
+            fuzzy_BC.plot_membership_fxs(mfxs, defuzz_x, defuzz_y)
+
 
     def relative_agreement_step(self, weight):
 
