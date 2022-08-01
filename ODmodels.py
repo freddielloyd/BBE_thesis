@@ -4,6 +4,8 @@ from network_structures import *
 
 import numpy as np
 
+from fuzzy_BC import *
+
 
 def calculate_ema(odds, timesteps, smoothing=2):
     if len(odds) < timesteps:
@@ -36,6 +38,10 @@ class LocalConversation:
             self.relative_agreement_step(mu)
         elif self.model == 'RD':
             self.relative_disagreement_step(mu, lmda)
+            
+        if self.model == 'fuzzy_BC':
+            self.fuzzy_bounded_confidence_step(mu, delta)  
+            
         else:
             return print('OD model does not exist')
 
@@ -44,6 +50,20 @@ class LocalConversation:
     # bounded confidence model
     # (w, delta) are confidence factor and deviation threshold  respectively
     def bounded_confidence_step(self, w, delta):
+
+        X_i = self.bettor1.local_opinion
+        X_j = self.bettor2.local_opinion
+
+        # if difference in opinion is within deviation threshold
+        if abs(X_i - X_j) <= delta:
+            if self.bettor1.influenced_by_opinions == 1:
+                i_update = w * X_i + (1 - w) * X_j
+                self.bettor1.set_opinion(i_update)
+            if self.bettor2.influenced_by_opinions == 1:
+                j_update = w * X_j + (1 - w) * X_i
+                self.bettor2.set_opinion(j_update)
+                
+    def fuzzy_bounded_confidence_step(self, w, delta):
 
         X_i = self.bettor1.local_opinion
         X_j = self.bettor2.local_opinion

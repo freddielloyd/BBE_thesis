@@ -45,6 +45,7 @@ NUM_IN_PLAY_SIMS = 5
 #OD models
 
 MODEL_NAME = 'BC'
+MODEL_NAME = 'fuzzy_BC'
 OPINION_COMPETITOR = 1 # Bettors will be expressing opinions about this competitor. Opinions are in the range of [0,1].
 
 MAX_OP = 1
