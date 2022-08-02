@@ -40,7 +40,7 @@ class LocalConversation:
             self.relative_disagreement_step(mu, lmda)
             
         if self.model == 'fuzzy_BC':
-            self.fuzzy_bounded_confidence_step(mu, delta)  
+            self.fuzzy_bounded_confidence_step(delta, mfx, interaction)  
             
         else:
             return print('OD model does not exist')
@@ -63,32 +63,64 @@ class LocalConversation:
                 j_update = w * X_j + (1 - w) * X_i
                 self.bettor2.set_opinion(j_update)
                 
-    def fuzzy_bounded_confidence_step(self, w, delta):
-
-        X_i = self.bettor1.local_opinion
-        X_j = self.bettor2.local_opinion
-
-        # if difference in opinion is within deviation threshold
-        if abs(X_i - X_j) <= delta:
-            
-            opinion_gap = abs(X_i - X_j)
-            fuzzy_bc = fuzzy_BC()
-            
-            mfx = 'triangular'     # triangular or trapezoidal
-            mfxs = fuzzy_bc.fuzzification(mfx, opinion_gap)
-            
-            #y1 = mfxs[0][int(opinion_gap*100)]
-            #y2 = mfxs[1][int(opinion_gap*100)]
-            
-            yvals = fuzzy_bc.defuzz_yvals(mfxs, [0.18,0.18]) # this obtains same as y1 and y2 above
-
-            defoe = fuzzy_bc.defuzz_xvals(mfxs, 'centroid')            
-            
-            
-            defuzz_x = fuzzy_bc.defuzz_xvals(mfxs, 'centroid')
-            defuzz_y = fuzzy_bc.defuzz_yvals(mfxs, defuzz_x)
                 
-            fuzzy_BC.plot_membership_fxs(mfxs, defuzz_x, defuzz_y)
+    # mfx is triangular or trapezoidal currently, interaction pairwise or group
+    def fuzzy_bounded_confidence_step(self, delta, mfx, interaction):
+
+        if interaction == 'pairwise':
+    
+            X_i = self.bettor1.local_opinion
+            X_j = self.bettor2.local_opinion
+    
+            # if difference in opinion is within deviation threshold
+            if abs(X_i - X_j) <= delta:
+                
+                opinion_gap = abs(X_i - X_j)
+                fuzzy_bc = fuzzy_BC()
+     
+                w = fuzzy_bc.fuzzification(mfx, opinion_gap) # defuzzified agent interaction weight
+                
+                print('defuzzified agent interaction weight: ', w)
+                
+                
+                if self.bettor1.influenced_by_opinions == 1:
+                    i_update = (1 - w) * X_i + w * X_j # opinion is strength of weight times other agents opinion
+                    self.bettor1.set_opinion(i_update)
+                if self.bettor2.influenced_by_opinions == 1:
+                    j_update = (1 - w) * X_j + w * X_i
+                    self.bettor2.set_opinion(j_update)
+                    
+            elif abs(X_i - X_j) > delta:
+                print('Opinion gap too far apart - no interaction occurs')
+                
+        elif interaction == 'group':
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+                    
+                
+    # =============================================================================
+    #             #y1 = mfxs[0][int(opinion_gap*100)]
+    #             #y2 = mfxs[1][int(opinion_gap*100)]
+    #             
+    #             yvals = fuzzy_bc.defuzz_yvals(mfxs, [0.18,0.18]) # this obtains same as y1 and y2 above
+    # 
+    #             defoe = fuzzy_bc.defuzz_xvals(mfxs, 'centroid')            
+    #             
+    #             
+    #             defuzz_x = fuzzy_bc.defuzz_xvals(mfxs, 'centroid')
+    #             defuzz_y = fuzzy_bc.defuzz_yvals(mfxs, defuzz_x)
+    #                 
+    #             fuzzy_BC.plot_membership_fxs(mfxs, defuzz_x, defuzz_y)
+    # =============================================================================
 
 
     def relative_agreement_step(self, weight):

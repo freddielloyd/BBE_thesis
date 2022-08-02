@@ -56,7 +56,11 @@ mu = 0.2 # used for all models eg. 0.2
 delta = 0.25 # used for Bounded Confidence Model eg. 0.1
 lmda = 0.5 # used for Relative Disagreement Model eg. 0.1
 
+# Fuzzy membership function (triangular or trapezoidal)
+mfx = 'triangular' 
 
+# Pairwise or group interactions
+interactions = 'pairwise'
 
 # Network Structure
 
