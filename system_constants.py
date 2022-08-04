@@ -44,8 +44,8 @@ NUM_IN_PLAY_SIMS = 5
 
 #OD models
 
-#MODEL_NAME = 'BC'
-MODEL_NAME = 'fuzzy_BC'
+MODEL_NAME = 'BC'
+#MODEL_NAME = 'fuzzy_BC'
 OPINION_COMPETITOR = 1 # Bettors will be expressing opinions about this competitor. Opinions are in the range of [0,1].
 
 MAX_OP = 1
@@ -57,10 +57,12 @@ delta = 0.25 # used for Bounded Confidence Model eg. 0.1
 lmda = 0.5 # used for Relative Disagreement Model eg. 0.1
 
 # Fuzzy membership function (triangular or trapezoidal)
-mfx = 'triangular' 
+FUZZY_MFX = 'triangular' 
+#FUZZY_MFX = 'trapezoidal'
 
 # Pairwise or group interactions
-interactions = 'pairwise'
+#INTERACTIONS = 'pairwise'
+INTERACTIONS = 'group' # only for watts strogatz network within clusters
 
 # Network Structure
 

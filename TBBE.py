@@ -1,6 +1,17 @@
- ### ~ THREADED BRISTOL BETTING EXCHANGE ~ ###
+### ~ THREADED BRISTOL BETTING EXCHANGE ~ ###
 
-import sys, math, threading, time, queue, random, csv, config, pandas
+
+import math, threading, time, queue, random, csv, pandas
+
+import os
+import sys
+
+sys.path
+file_dir = os.path.dirname("/Users/freddielloyd/Documents/Uob Documents/DSP THESIS/Git_Repo/")
+sys.path.append(file_dir)
+sys.path
+
+import config
 from copy import deepcopy
 
 
@@ -216,6 +227,19 @@ class Session:
             if name == 'Agent_Opinionated_Priviledged': return Agent_Opinionated_Priviledged(id, name, self.lengthOfRace, self.endOfInPlayBettingPeriod, 1, local_opinion, uncertainty, MIN_OP, MAX_OP)
 
 
+# =============================================================================
+#             if name == 'Agent_Opinionated_Random': return Agent_Opinionated_Random(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion, uncertainty, MIN_OP, MAX_OP )
+#             if name == 'Agent_Opinionated_Leader_Wins': return Agent_Opinionated_Leader_Wins(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion, uncertainty, MIN_OP, MAX_OP )
+#             if name == 'Agent_Opinionated_Underdog': return Agent_Opinionated_Underdog(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion, uncertainty, MIN_OP, MAX_OP)
+#             if name == "Agent_Opinionated_Back_Favourite": return Agent_Opinionated_Back_Favourite(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion, uncertainty, MIN_OP, MAX_OP)
+#             if name == 'Agent_Opinionated_Linex': return Agent_Opinionated_Linex(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion,uncertainty, MIN_OP, MAX_OP)
+# 
+#             if name == 'Agent_Opinionated_Priviledged': return Agent_Opinionated_Priviledged(id, name, lengthOfRace, endOfInPlayBettingPeriod, 1, local_opinion, uncertainty, MIN_OP, MAX_OP)
+# 
+# =============================================================================
+
+
+
 
         id = 0
         for agent in config.agents:
@@ -243,7 +267,7 @@ class Session:
         Initialise betting agents
         """
         self.populateMarket()
-        self.OpinionDynamicsPlatform = OpinionDynamicsPlatform(list(self.bettingAgents.values()), MODEL_NAME, NETWORK_NAME)
+        self.OpinionDynamicsPlatform = OpinionDynamicsPlatform(list(self.bettingAgents.values()), MODEL_NAME, NETWORK_NAME, INTERACTIONS)
         # Create threads for all betting agents that wait until event session
         # has started
         for id, agent in self.bettingAgents.items():
