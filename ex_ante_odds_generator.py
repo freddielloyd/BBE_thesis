@@ -145,6 +145,7 @@ def getExAnteOdds(agentId):
 def getInPlayOdds(timestep, agentId):
 
     odds = inPlayOdds[timestep]
+    #print(agents)
     return odds[agents[agentId]]
 
 #

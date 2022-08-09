@@ -60,7 +60,7 @@ class Session:
         self.priceRecord = {}
         self.spreads = {}
         self.opinion_hist = {'id': [], 'time': [], 'opinion': [], 'competitor': []}
-        self.opinion_hist_l = {'id': [], 'time': [], 'opinion': [], 'competitor': []}
+        self.opinion_hist_l = {'id': [], 'type': [], 'time': [], 'opinion': [], 'competitor': []}
         self.opinion_hist_e = {'id': [], 'time': [], 'opinion': [], 'competitor': []}
         self.opinion_hist_g = {'id': [], 'time': [], 'opinion': [], 'competitor': []}
         self.opinion_hist_s = {'id': [], 'time': [], 'opinion': [], 'competitor': []}
@@ -110,7 +110,8 @@ class Session:
         """
         Logic for betting agent threads
         """
-        print("AGENT " + str(agent.id) + " INITIALISED...")
+        print("AGENT " + str(agent.shuffled_id) + " INITIALISED...")
+        #print(agent)
         # Need to have pre-event betting period
         self.event.wait()
         # Whole event is running, run logic for betting agents
@@ -141,6 +142,8 @@ class Session:
 
             agent.respond(timeInEvent, marketUpdates, trade)
             order = agent.getorder(timeInEvent, marketUpdates)
+            
+            
 
 
             if agent.id == 0:
@@ -160,27 +163,33 @@ class Session:
                         self.competitor_distances['distance'].append(agent.currentRaceState[i])
 
 
-            self.opinion_hist['id'].append(agent.id)
+            #self.opinion_hist['id'].append(agent.id)
+            self.opinion_hist['id'].append(agent.shuffled_id)
             self.opinion_hist['time'].append(timeInEvent)
             self.opinion_hist['opinion'].append(agent.opinion)
             self.opinion_hist['competitor'].append(OPINION_COMPETITOR)
 
-            self.opinion_hist_e['id'].append(agent.id)
+            #self.opinion_hist_e['id'].append(agent.id)
+            self.opinion_hist_e['id'].append(agent.shuffled_id)
             self.opinion_hist_e['time'].append(timeInEvent)
             self.opinion_hist_e['opinion'].append(agent.event_opinion)
             self.opinion_hist_e['competitor'].append(OPINION_COMPETITOR)
 
-            self.opinion_hist_l['id'].append(agent.id)
+            #self.opinion_hist_l['id'].append(agent.id)
+            self.opinion_hist_l['id'].append(agent.shuffled_id)
+            self.opinion_hist_l['type'].append(agent.name)
             self.opinion_hist_l['time'].append(timeInEvent)
             self.opinion_hist_l['opinion'].append(agent.local_opinion)
             self.opinion_hist_l['competitor'].append(OPINION_COMPETITOR)
 
-            self.opinion_hist_g['id'].append(agent.id)
+            #self.opinion_hist_g['id'].append(agent.id)
+            self.opinion_hist_g['id'].append(agent.shuffled_id)
             self.opinion_hist_g['time'].append(timeInEvent)
             self.opinion_hist_g['opinion'].append(agent.global_opinion)
             self.opinion_hist_g['competitor'].append(OPINION_COMPETITOR)
 
-            self.opinion_hist_s['id'].append(agent.id)
+            #self.opinion_hist_s['id'].append(agent.id)
+            self.opinion_hist_s['id'].append(agent.shuffled_id)
             self.opinion_hist_s['time'].append(timeInEvent)
             self.opinion_hist_s['opinion'].append(agent.strategy_opinion)
             self.opinion_hist_s['competitor'].append(OPINION_COMPETITOR)
@@ -193,7 +202,7 @@ class Session:
                 self.exchangeOrderQs[order.exchange].put(order)
 
 
-        print("ENDING AGENT " + str(agent.id))
+        print("ENDING AGENT " + str(agent.shuffled_id))
         return 0
 
     def populateMarket(self):
@@ -236,10 +245,8 @@ class Session:
 # 
 #             if name == 'Agent_Opinionated_Priviledged': return Agent_Opinionated_Priviledged(id, name, lengthOfRace, endOfInPlayBettingPeriod, 1, local_opinion, uncertainty, MIN_OP, MAX_OP)
 # 
+# 
 # =============================================================================
-
-
-
 
         id = 0
         for agent in config.agents:
@@ -249,9 +256,27 @@ class Session:
                 self.bettingAgents[id] = initAgent(agent[0], id)
                 id = id + 1
 
-        random.shuffle(self.bettingAgents) # ensures all types of bettors are mixed up rather than all adjacent
+        to_shuffle = list(self.bettingAgents.values()) # cant shuffle dict so need to make list then convert back after shuffling
+        #print(to_shuffle)
+        random.shuffle(to_shuffle)  # ensures all types of bettors are mixed up rather than all adjacent
+        #print(to_shuffle)
         
+        
+        self.bettingAgents = dict(zip(self.bettingAgents, to_shuffle))
         print(self.bettingAgents)
+        
+        for i in range(len(self.bettingAgents.values())):
+            agent = list(self.bettingAgents.values())[i]
+            #print(agent, agent.id)
+            new_id = list(self.bettingAgents.keys())[i]
+            agent.shuffled_id = new_id # set id to new id after shuffling so can match up as needed
+            print(agent, agent.id, agent.shuffled_id)
+            
+        
+        #print(self.bettingAgents)
+        
+        #print(self.bettingAgents.values())
+        #print(self.bettingAgents.items())
 
 
     def initialiseExchanges(self):
@@ -270,7 +295,9 @@ class Session:
         self.OpinionDynamicsPlatform = OpinionDynamicsPlatform(list(self.bettingAgents.values()), MODEL_NAME, NETWORK_NAME, INTERACTIONS)
         # Create threads for all betting agents that wait until event session
         # has started
+       
         for id, agent in self.bettingAgents.items():
+            #print(id, agent)
             self.bettingAgentQs[id] = queue.Queue()
             thread = threading.Thread(target = self.agentLogic, args = [agent, self.bettingAgentQs[id]])
             self.bettingAgentThreads.append(thread)
@@ -405,9 +432,6 @@ class Session:
 
 
 
-
-
-
 class BBE(Session):
     def __init__(self):
         self.session = None
@@ -467,7 +491,7 @@ if __name__ == "__main__":
     import time
 
     start = time.time()
-    random.seed(100) # controls the outcome of the race for repoducibility
+    random.seed(100) # controls the outcome of the race for repoducibility, shuffle of agents etc
     np.random.seed(100) # seed for exchange/transactions etc
     print('Running')
     bbe = BBE()

@@ -148,28 +148,30 @@ class fuzzy_BC:
             crisp_weight = fuzz.defuzz(self.x_weight, aggregated, 'centroid')
             weight_activation = fuzz.interp_membership(self.x_weight, aggregated, crisp_weight)  # for plot
     
-    
-            # Visualize this
-            fig, ax0 = plt.subplots(figsize=(8, 4))
-    
-            ax0.plot(self.x_weight, w_vstr, 'r', linewidth=0.5, linestyle='--', )
-            ax0.plot(self.x_weight, w_qstr, 'g', linewidth=0.5, linestyle='--')
-            ax0.plot(self.x_weight, w_str, 'b', linewidth=0.5, linestyle='--')
-            ax0.plot(self.x_weight, w_w, 'c', linewidth=0.5, linestyle='--', )
-            ax0.plot(self.x_weight, w_qw, 'm', linewidth=0.5, linestyle='--')
-            ax0.plot(self.x_weight, w_vw, 'y', linewidth=0.5, linestyle='--')
-            ax0.fill_between(self.x_weight, weight0, aggregated, facecolor='Red', alpha=0.7)
-            ax0.plot([crisp_weight, crisp_weight], [0, weight_activation], 'k', linewidth=1.5, alpha=0.9)
-            ax0.set_title('Aggregated membership and result (line)')
-    
-            # Turn off top/right axes
-            for ax in (ax0,):
-                ax.spines['top'].set_visible(False)
-                ax.spines['right'].set_visible(False)
-                ax.get_xaxis().tick_bottom()
-                ax.get_yaxis().tick_left()
-    
-            plt.tight_layout()
+            
+# =============================================================================
+#             # Visualize every centroid defuzzification process - weight on x axis, membership on y axis
+#             fig, ax0 = plt.subplots(figsize=(8, 4))
+#     
+#             ax0.plot(self.x_weight, w_vstr, 'r', linewidth=0.5, linestyle='--', )
+#             ax0.plot(self.x_weight, w_qstr, 'g', linewidth=0.5, linestyle='--')
+#             ax0.plot(self.x_weight, w_str, 'b', linewidth=0.5, linestyle='--')
+#             ax0.plot(self.x_weight, w_w, 'c', linewidth=0.5, linestyle='--', )
+#             ax0.plot(self.x_weight, w_qw, 'm', linewidth=0.5, linestyle='--')
+#             ax0.plot(self.x_weight, w_vw, 'y', linewidth=0.5, linestyle='--')
+#             ax0.fill_between(self.x_weight, weight0, aggregated, facecolor='Red', alpha=0.7)
+#             ax0.plot([crisp_weight, crisp_weight], [0, weight_activation], 'k', linewidth=1.5, alpha=0.9)
+#             ax0.set_title('Aggregated membership and result (line)')
+#     
+#             # Turn off top/right axes
+#             for ax in (ax0,):
+#                 ax.spines['top'].set_visible(False)
+#                 ax.spines['right'].set_visible(False)
+#                 ax.get_xaxis().tick_bottom()
+#                 ax.get_yaxis().tick_left()
+#     
+#             plt.tight_layout()
+# =============================================================================
     
             return crisp_weight
 

@@ -22,6 +22,9 @@ class BettingAgent:
                  uncertainty, lower_op_bound,
                  upper_op_bound, exchange=None):
         self.id = id
+        
+        self.shuffled_id = None
+        
         self.name = name
         self.balance = 100000000
         self.liability = 0  # Amount that bettor is liable for if bettor lays winner
@@ -657,7 +660,8 @@ class Agent_Opinionated_Priviledged(BettingAgent):
 
 
         if (self.raceTimestep % self.updateInterval) == 0:
-
+            
+            #print('self.id: ', self.id)
             odds = getInPlayOdds(self.raceTimestep, self.id)
             # plotting code
             row = [self.raceTimestep]
