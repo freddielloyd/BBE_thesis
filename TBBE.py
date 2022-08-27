@@ -263,14 +263,14 @@ class Session:
         
         
         self.bettingAgents = dict(zip(self.bettingAgents, to_shuffle))
-        print(self.bettingAgents)
+        #print(self.bettingAgents)
         
         for i in range(len(self.bettingAgents.values())):
             agent = list(self.bettingAgents.values())[i]
             #print(agent, agent.id)
             new_id = list(self.bettingAgents.keys())[i]
             agent.shuffled_id = new_id # set id to new id after shuffling so can match up as needed
-            print(agent, agent.id, agent.shuffled_id)
+            #print(agent, agent.id, agent.shuffled_id)
             
         
         #print(self.bettingAgents)
@@ -420,7 +420,8 @@ class Session:
         createExAnteOdds(compPool, raceAttributes)
 
         race.run("core")
-
+        
+        
         self.numberOfTimesteps = race.numberOfTimesteps
         self.lengthOfRace = race.race_attributes.length
         self.winningCompetitor = race.winner
@@ -450,12 +451,19 @@ class BBE(Session):
         # within loop instantiate competitors into list
         # run simulation and matching engine
         while currentSimulation < NUM_OF_SIMS:
+            
+            #random.seed(26) # if set here race and transactions identical on every sim
+            #np.random.seed(26) # no np randoms used
+
+            
             simulationId = "Simulation: " + str(currentSimulation)
             # Start up thread for race on which all other threads will wait
             self.session = Session()
             if argFunc:
                 argFunc(self.session)
             self.session.eventSession(currentSimulation)
+            
+            plotting_main() # produce desired plots from plotting.py on each sim
 
             currentSimulation = currentSimulation + 1
 
@@ -482,21 +490,25 @@ class BBE(Session):
         opinion_hist_s_df = pandas.DataFrame.from_dict(self.session.opinion_hist_s)
         opinion_hist_s_df.to_csv('data/opinions/opinion_hist_s.csv', index=False)
         
-        plotting_main() # produce desired plots from plotting.py
+        #plotting_main() # produce desired plots from plotting.py
         
 
 
 
 if __name__ == "__main__":
-    import time
+    #import time
 
+    #for i in range(30):
     start = time.time()
-    random.seed(100) # controls the outcome of the race for repoducibility, shuffle of agents etc
-    np.random.seed(100) # seed for exchange/transactions etc
+        #random.seed(i)
+    random.seed(26) # only reproducible for first sim if used here
+    #np.random.seed(100) # no numpy randoms used
     print('Running')
     bbe = BBE()
     print('Running')
     bbe.runSession()
     end = time.time()
     print('Time taken: ', end - start)
+    
+    
 

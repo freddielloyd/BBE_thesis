@@ -119,16 +119,6 @@ class WattsStrogatz(graph):
     def __init__(self, num_of_nodes, num_of_neighbors, rewiring_probability):
             
         graph.__init__(self, num_of_nodes, num_of_neighbors, rewiring_probability)
-                
-
-# =============================================================================
-#         #initial parameters
-#         num_of_v=200
-#         num_of_neighbors=60
-#         prob=0.3
-# =============================================================================
-        
-
 
     def create_network(self):
         
@@ -143,10 +133,7 @@ class WattsStrogatz(graph):
                 wsmodel.append(i,i+j if i+j<self.num_of_nodes else i+j-self.num_of_nodes,1)   
                 wsmodel.append(i,i-j if i-j>=0 else i-j+self.num_of_nodes,1)
                 wsmodel.append(i+j if i+j<self.num_of_nodes else i+j-self.num_of_nodes,i,1)   
-                wsmodel.append(i-j if i-j>=0 else i-j+self.num_of_nodes,i,1)
-                
-                
-                
+                wsmodel.append(i-j if i-j>=0 else i-j+self.num_of_nodes,i,1)                     
                 
         #rewiring - remove a random edge and create a random edge
         for i in wsmodel.vertex():
@@ -157,8 +144,7 @@ class WattsStrogatz(graph):
                     rewired=np.random.choice(wsmodel.vertex())
                     wsmodel.append(i,rewired,1)
                     wsmodel.append(rewired,i,1)
-                    
-                    
+                                        
         return wsmodel
                 
                 

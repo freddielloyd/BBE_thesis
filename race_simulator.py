@@ -27,7 +27,8 @@ from statistics import mean
 from system_constants import *
 from competitor import Competitor
 
-
+# change when using race data creation file
+#NUM_OF_COMPETITORS = 8 # this needs to be changed to match number in race data creation for it to work properly
 
 # Race Attributes
 class RaceAttributes:
@@ -301,6 +302,7 @@ class Simulator:
             header.append(str(c.id))
 
         fileName = "data/race_event_" + str(name) + ".csv"
+        #fileName = "/Users/freddielloyd/Documents/Uob Documents/DSP THESIS/data/race_event_sims/race_event_" + str(name) + ".csv"
         with open(fileName, 'w', newline = '') as file:
             writer = csv.writer(file)
             writer.writerow(header)

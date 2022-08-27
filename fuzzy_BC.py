@@ -50,7 +50,7 @@ class fuzzy_BC:
 
             
             
-            # Generate fuzzy membership functions 
+            # Generate triangular membership functions 
             
             # Opinion Gap Membership
             op_vsm = fuzz.trimf(self.x_opinion_gap, [0, 0, 0.1]) # very small
@@ -69,6 +69,22 @@ class fuzzy_BC:
             w_qw = fuzz.trimf(self.x_weight, [0, 0.2, 0.4]) # quite weak
             w_vw = fuzz.trimf(self.x_weight, [0, 0, 0.2]) # very weak
 
+
+            # Opinion Gap Membership - NEW: 0.276 is very large and correspond to zero weight
+            op_vsm = fuzz.trimf(self.x_opinion_gap, [0, 0, 0.07]) # very small
+            op_qsm = fuzz.trimf(self.x_opinion_gap, [0, 0.07, 0.14]) # quite small
+            op_sm = fuzz.trimf(self.x_opinion_gap, [0.07, 0.14, 0.21]) # small
+            op_l = fuzz.trimf(self.x_opinion_gap, [0.14, 0.21, 0.276]) # large
+            op_ql = fuzz.trimf(self.x_opinion_gap, [0.21, 0.276, 0.342]) # quite large
+            op_vl = fuzz.trimf(self.x_opinion_gap, [0.276, 1, 1]) # very large
+            
+            # Agent interaction update weight membership
+            w_vstr = fuzz.trimf(self.x_weight, [0.83, 1, 1]) # very strong
+            w_qstr = fuzz.trimf(self.x_weight, [0.67, 0.83, 0.83]) # quite strong
+            w_str = fuzz.trimf(self.x_weight, [0.55, 0.7, 0.7]) # strong
+            w_w = fuzz.trimf(self.x_weight, [0.33, 0.33, 0.58]) # weak
+            w_qw = fuzz.trimf(self.x_weight, [0, 0.03, 0.35]) # quite weak
+            w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
 
 
 
@@ -189,11 +205,58 @@ class fuzzy_BC:
             # d-x/d-c, c<=x<=d
             # 0,       d<=x
             
-            x = np.arange(0, 5.05, 0.1)
-            mfx = fuzz.trapmf(x,[2, 2.5, 3, 4.5])
+
             
-            for i in range(len(x)):
-                print(x[i], mfx[i])
+            # Generate trapezoidal membership functions 
+            
+            # Opinion Gap Membership
+            op_vsm = fuzz.trapmf(self.x_opinion_gap, [0, 0, 0.1, 0.2]) # very small
+            op_qsm = fuzz.trapmf(self.x_opinion_gap, [0, 0.1, 0.2, 0.3]) # quite small
+            op_sm = fuzz.trapmf(self.x_opinion_gap, [0.1, 0.2, 0.3, 0.4]) # small
+            op_l = fuzz.trapmf(self.x_opinion_gap, [0.3, 0.4, 0.5, 0.6]) # large
+            op_ql = fuzz.trapmf(self.x_opinion_gap, [0.4, 0.5, 0.6, 0.7]) # quite large
+            op_vl = fuzz.trapmf(self.x_opinion_gap, [0.5, 0.7, 0.8, 1]) # very large
+            
+            
+            # Agent interaction update weight membership
+            w_vstr = fuzz.trapmf(self.x_weight, [0.8, 0.9, 1, 1]) # very strong
+            w_qstr = fuzz.trapmf(self.x_weight, [0.6, 0.7, 0.8, 0.8]) # quite strong
+            w_str = fuzz.trapmf(self.x_weight, [0.4, 0.5, 0.6, 0.7]) # strong
+            w_w = fuzz.trapmf(self.x_weight, [0.2, 0.3, 0.4, 0.5]) # weak
+            w_qw = fuzz.trapmf(self.x_weight, [0.1, 0.2, 0.3, 0.4]) # quite weak
+            w_vw = fuzz.trapmf(self.x_weight, [0, 0, 0.1, 0.2]) # very weak
+
+
+
+        elif mfx == 'gaussian':
+            
+
+            # Generate gaussian membership functions 
+            
+            # arguments of gaussmf are mean and standard deviation
+            
+            # Opinion Gap Membership
+            op_vsm = fuzz.gaussmf(self.x_opinion_gap, [0.1, 0.05]) # very small
+            op_qsm = fuzz.gaussmf(self.x_opinion_gap, [0.2, 0.05]) # quite small
+            op_sm = fuzz.gaussmf(self.x_opinion_gap, [0.3, 0.1]) # small
+            op_l = fuzz.gaussmf(self.x_opinion_gap, [0.4, 0.1]) # large
+            op_ql = fuzz.gaussmf(self.x_opinion_gap, [0.6, 0.2]) # quite large
+            op_vl = fuzz.gaussmf(self.x_opinion_gap, [0.8, 0.2]) # very large
+            
+            
+            # Agent interaction update weight membership
+            w_vstr = fuzz.gaussmf(self.x_weight, [0.8, 0.2]) # very strong
+            w_qstr = fuzz.trimf(self.x_weight, [0.6, 0.2]) # quite strong
+            w_str = fuzz.trimf(self.x_weight, [0.4, 0.1]) # strong
+            w_w = fuzz.trimf(self.x_weight, [0.3, 0.1]) # weak
+            w_qw = fuzz.trimf(self.x_weight, [0.2, 0.05]) # quite weak
+            w_vw = fuzz.trimf(self.x_weight, [0.1, 0.05]) # very weak
+
+
+            
+
+            
+
                 
                 
     def defuzz_xvals(self, mfxs, method): # method = centroid, bisector, or mean of maximum

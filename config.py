@@ -23,8 +23,52 @@ agents = [
           ('Agent_Opinionated_Priviledged', 5)
           ]
 
+mixed_intelligence_agents = [
+          ('Agent_Opinionated_Random', 50),
+          ('Agent_Opinionated_Leader_Wins', 50),
+          ('Agent_Opinionated_Underdog', 50),
+          ('Agent_Opinionated_Back_Favourite',50),
+          ('Agent_Opinionated_Linex', 50),
+          ('Agent_Opinionated_Priviledged', 50)
+          ]
+
+high_intelligence_agents = [
+          ('Agent_Opinionated_Random', 25),
+          ('Agent_Opinionated_Leader_Wins', 25),
+          ('Agent_Opinionated_Underdog', 25),
+          ('Agent_Opinionated_Back_Favourite',75),
+          ('Agent_Opinionated_Linex', 75),
+          ('Agent_Opinionated_Priviledged', 75)
+          ]
+
+low_intelligence_agents = [
+          ('Agent_Opinionated_Random', 75),
+          ('Agent_Opinionated_Leader_Wins', 75),
+          ('Agent_Opinionated_Underdog', 75),
+          ('Agent_Opinionated_Back_Favourite',25),
+          ('Agent_Opinionated_Linex', 25),
+          ('Agent_Opinionated_Priviledged', 25)
+          ]
 
 
+low_agents = [ 
+          ('Agent_Opinionated_Random', 1),
+          ('Agent_Opinionated_Leader_Wins', 1),
+          ('Agent_Opinionated_Underdog', 1),
+          ('Agent_Opinionated_Back_Favourite',1),
+          ('Agent_Opinionated_Linex', 1),
+          ('Agent_Opinionated_Priviledged', 2)
+          ]
+
+
+aagents = [ 
+          ('Agent_Opinionated_Random', 25),
+          ('Agent_Opinionated_Leader_Wins', 25),
+          ('Agent_Opinionated_Underdog', 25),
+          ('Agent_Opinionated_Back_Favourite',25),
+          ('Agent_Opinionated_Linex', 25),
+          ('Agent_Opinionated_Priviledged', 25)
+          ]
 
 
 

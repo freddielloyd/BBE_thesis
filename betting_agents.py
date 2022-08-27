@@ -153,7 +153,8 @@ class Agent_Opinionated_Random(BettingAgent):
                               local_opinion, uncertainty, lower_op_bound,
                               upper_op_bound)
         self.opinionated = 1
-        self.name = 'Agent_Opinionated_Random'
+        #self.name = 'Agent_Opinionated_Random'
+        self.name = 'Random'
 
     def getorder(self, time, markets):
         order = None
@@ -229,7 +230,8 @@ class Agent_Opinionated_Leader_Wins(BettingAgent):
 
             # random.randint(2,10)
         self.opinionated = 1
-        self.name = 'Agent_Opinionated_Leader_Wins'
+        #self.name = 'Agent_Opinionated_Leader_Wins'
+        self.name = 'Leader_Wins'
 
     def getorder(self, time, markets):
         order = None
@@ -299,7 +301,8 @@ class Agent_Opinionated_Underdog(BettingAgent):
         self.compInSecond = None
         self.job = None
         self.opinionated = 1
-        self.name = 'Agent_Opinionated_Underdog'
+        #self.name = 'Agent_Opinionated_Underdog'
+        self.name = 'Underdog'
 
     def observeRaceState(self, timestep, compDistances):
         super().observeRaceState(timestep, compDistances)
@@ -391,7 +394,8 @@ class Agent_Opinionated_Back_Favourite(BettingAgent):
                               upper_op_bound)
         self.marketsFave = None
         self.opinionated = 1
-        self.name = 'Agent_Opinionated_Back_Favourite'
+        #self.name = 'Agent_Opinionated_Back_Favourite'
+        self.name = 'Back_Favourite'
 
     def getorder(self, time, markets):
         order = None
@@ -476,7 +480,8 @@ class Agent_Opinionated_Linex(BettingAgent):
         self.job = None
         self.predicted = False
         self.opinionated = 1
-        self.name = 'Agent_Opinionated_Linex'
+        #self.name = 'Agent_Opinionated_Linex'
+        self.name = 'Linex'
 
     def predict(self):
         predictedWinnerTime = 10000
@@ -625,7 +630,8 @@ class Agent_Opinionated_Priviledged(BettingAgent):
 
 
         self.opinionated = 1
-        self.name = 'Agent_Opinionated_Priviledged'
+        #self.name = 'Agent_Opinionated_Priviledged'
+        self.name = 'Priviledged'
         self.latest_odds = None
 
 

@@ -99,7 +99,7 @@ def price_spread(spreadHistory, simId):
 def priv_bettor_odds(bettingAgents):
     privBettors = []
     for id, agent in bettingAgents.items():
-        if agent.name == 'Priveledged' or agent.name=='Agent_Opinionated_Priviledged': privBettors.append(agent)
+        if agent.name == 'Priviledged' or agent.name=='Agent_Opinionated_Priviledged': privBettors.append(agent)
 
     oddsdata = {}
     for b in privBettors:
@@ -110,7 +110,7 @@ def priv_bettor_odds(bettingAgents):
         header.append(str(c))
 
     for b in privBettors:
-        fileName = "data/comp_odds_by_" + str(b.id) + ".csv"
+        fileName = "data/comp_odds_by_" + str(b.id) + "_" + str(b.shuffled_id) + ".csv"
         with open(fileName, 'w', newline = '') as file:
             writer = csv.writer(file)
             writer.writerow(header)
@@ -122,13 +122,16 @@ def final_balances(bettingAgents, simId):
     for id, agent in bettingAgents.items():
         bettors.append(agent)
 
-    header = []
-    for i in range(len(bettors)):
-        header.append(str(i))
+    header = ['id', 'final_balance']
+    #for i in range(len(bettors)):
+    #    header.append(str(i))
 
     data = []
     for i in range(len(bettors)):
-        data.append(bettors[i].balance)
+        temp = []
+        temp.append(str(i))
+        temp.append(bettors[i].balance)
+        data.append(temp)
 
     #for b in bettors:
     #    fileName = "data/final_balance_" + str(simId) + "_" + str(b.id) + ".csv"
@@ -137,7 +140,7 @@ def final_balances(bettingAgents, simId):
     with open(fileName, 'w', newline = '') as file:
         writer = csv.writer(file)
         writer.writerow(header)
-        writer.writerow(data)
+        writer.writerows(data)
 
 
 def transactions(trades, simId):
@@ -159,7 +162,7 @@ def transactions(trades, simId):
 
 
 def createstats(bettingAgents, simId, trades, priceHistory, spreadHistory):
-    priv_bettor_odds(bettingAgents)
+    #priv_bettor_odds(bettingAgents)
     final_balances(bettingAgents, simId)
     #price_histories(priceHistory, simId)
     #price_spread(spreadHistory, simId)

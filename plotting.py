@@ -7,18 +7,16 @@ import scipy
 import numpy as np
 from system_constants import *
 
-# =============================================================================
-# def racePlotsForDave():
-#     for i in range(NUM_OF_SIMS):
-#         #filename = "data/race_event_" + str(i) + ".csv"
-#         filename = "data/race_event_core.csv"
-#         dataframe = pd.read_csv(filename)
-#         ys = []
-#         for i in range(1, NUM_OF_COMPETITORS+1):
-#             ys.append(i)
-#         dataframe.plot(x = "Time", y = ys, kind="line")
-#         plt.show()
-# =============================================================================
+def racePlotsForDave():
+    for i in range(NUM_OF_SIMS):
+        #filename = "data/race_event_" + str(i) + ".csv"
+        filename = "data/race_event_core.csv"
+        dataframe = pd.read_csv(filename)
+        ys = []
+        for i in range(1, NUM_OF_COMPETITORS+1):
+            ys.append(i)
+        dataframe.plot(x = "Time", y = ys, ylabel="Distance", kind="line")
+        plt.show()
 
 
 def raceEventPlot(filename):
@@ -31,7 +29,7 @@ def raceEventPlot(filename):
     plt.savefig('data/figures/race_event.png')
 
     plt.show()
-    #sns.lineplot( data=dataframe)
+    #sns.lineplot(data=dataframe)
 
 def privOddsPlot(filename):
     dataframe = pd.read_csv(filename)
@@ -121,15 +119,20 @@ def histogram(path, time_interval=0.5):
 
 
 def plotting_main():
+    
     #racePlotsForDave()
 
     race_event_file = "data/race_event_core.csv"
     raceEventPlot(race_event_file)
+    
+    histogram('data/transactions_0.csv', time_interval=(30/26))
+    
     #
     #comp_odds_file = "data/comp_odds_by_35.csv"
-    comp_odds_file = "data/comp_odds_by_50.csv"
-    privOddsPlot(comp_odds_file)
-    histogram('data/transactions_0.csv', time_interval=(30/26))
+    #comp_odds_file = "data/comp_odds_by_50.csv"
+    #privOddsPlot(comp_odds_file)
+    
+    #histogram('data/transactions_0.csv', time_interval=(30/26))
     #price_histories('data/price_histories_0.csv')
     #price_spreads('data/price_spreads_0.csv')
 

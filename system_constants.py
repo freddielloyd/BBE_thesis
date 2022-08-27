@@ -6,10 +6,13 @@ NUM_OF_COMPETITORS = 2
 NUM_OF_EXCHANGES = 1
 PRE_RACE_BETTING_PERIOD_LENGTH = 0
 IN_PLAY_CUT_OFF_PERIOD = 0
-SESSION_SPEED_MULTIPLIER = 1
+SESSION_SPEED_MULTIPLIER = 50
 
 # Data Store Attributes
 RACE_DATA_FILENAME = 'data/race_event_core.csv'
+#RACE_DATA_FILENAME = '/Users/freddielloyd/Documents/Uob Documents/DSP THESIS/data/race_event_core.csv'
+
+
 
 # Message Protocol Numbers
 EXCHANGE_UPDATE_MSG_NUM = 1
@@ -26,7 +29,7 @@ EXCHANGE_VERBOSE = False
 
 # Event Attributes
 # average horse races are between 5 and 12 (1005 - 2414) furlongs or could go min - max (400 - 4000)
-RACE_LENGTH = 500
+RACE_LENGTH = 2000
 MIN_RACE_LENGTH = 400
 MAX_RACE_LENGTH = 4000
 
@@ -70,3 +73,9 @@ INTERACTIONS = 'group' # only for watts strogatz network within clusters
 NETWORK_NAME = 'watts_strogatz'
 num_neighbours = 10
 rewiring_prob = 0.3
+
+
+
+# method for interaction participant selection
+#interaction_method = 'direct neighbours'
+#interaction_method = 'novel method'
