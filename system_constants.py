@@ -2,11 +2,11 @@
 
 # General
 NUM_OF_SIMS = 1
-NUM_OF_COMPETITORS = 2
+NUM_OF_COMPETITORS = 4
 NUM_OF_EXCHANGES = 1
 PRE_RACE_BETTING_PERIOD_LENGTH = 0
 IN_PLAY_CUT_OFF_PERIOD = 0
-SESSION_SPEED_MULTIPLIER = 50
+SESSION_SPEED_MULTIPLIER = 1
 
 # Data Store Attributes
 RACE_DATA_FILENAME = 'data/race_event_core.csv'
@@ -64,8 +64,8 @@ FUZZY_MFX = 'triangular'
 #FUZZY_MFX = 'trapezoidal'
 
 # Pairwise or group interactions
-#INTERACTIONS = 'pairwise'
-INTERACTIONS = 'group' # only for watts strogatz network within clusters
+INTERACTIONS = 'pairwise'
+#INTERACTIONS = 'group' # only for watts strogatz network within clusters
 
 # Network Structure
 

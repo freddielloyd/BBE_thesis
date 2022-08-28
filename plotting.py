@@ -7,6 +7,9 @@ import scipy
 import numpy as np
 from system_constants import *
 
+# needed for residual distance plots
+from sklearn.linear_model import LinearRegression
+
 def racePlotsForDave():
     for i in range(NUM_OF_SIMS):
         #filename = "data/race_event_" + str(i) + ".csv"
@@ -19,17 +22,65 @@ def racePlotsForDave():
         plt.show()
 
 
-def raceEventPlot(filename):
+def raceEventPlot(filename, seed):
     dataframe = pd.read_csv(filename)
     #print(dataframe)
     ys = []
     for i in range(1, NUM_OF_COMPETITORS+1):
         ys.append(i)
-    dataframe.plot(x = "Time", xlabel="Time (s)", y = ys, ylabel="Distance (m)", kind="line")
+    dataframe.plot(x = "Time", xlabel="Time (s)", y = ys, ylabel="Distance (m)", kind="line", title = 'seed: {}'.format(seed))
     plt.savefig('data/figures/race_event.png')
 
     plt.show()
     #sns.lineplot(data=dataframe)
+    
+def residualDistancePlot(filename, seed):
+    filename = "data/race_event_core.csv"
+    dataframe = pd.read_csv(filename)
+    
+    X_time = []
+    for i in dataframe['Time']:
+        j = 0
+        while j < NUM_OF_COMPETITORS:
+            X_time.append(i)
+            j += 1
+
+    Y_distances = []
+    for i in range(len(dataframe['Time'])):
+        j = 0
+        while j < NUM_OF_COMPETITORS:
+            Y_distances.append(dataframe['{}'.format(j)][i])
+            j += 1
+
+        
+    X_time = np.array(X_time)
+    Y_distances = np.array(Y_distances)
+    
+    X_time = X_time.reshape((-1, 1))
+
+    reg = LinearRegression().fit(X_time, Y_distances) 
+
+    y_intercept = reg.intercept_
+    slope = reg.coef_
+    
+    reg_line = slope * dataframe['Time'] + y_intercept
+    
+    res_distances = {'Time' : dataframe['Time']}
+    
+    for i in range(NUM_OF_COMPETITORS):
+        res_distances['{}'.format(i)] = dataframe['{}'.format(i)] - reg_line
+
+    residual_df = pd.DataFrame.from_dict(res_distances) # convert dict to df
+    
+    ys = []
+    for i in range(1, NUM_OF_COMPETITORS+1):
+        ys.append(i)
+    
+    residual_df.plot(x = "Time", xlabel="Time (s)", y = ys, ylabel="Residual Distance", kind="line", title = 'seed: {}'.format(seed))
+
+    plt.savefig('data/figures/race_event_residual_distance.png')
+    plt.show()
+
 
 def privOddsPlot(filename):
     dataframe = pd.read_csv(filename)
@@ -118,14 +169,18 @@ def histogram(path, time_interval=0.5):
     plt.show()
 
 
-def plotting_main():
+def plotting_main(seed):
     
     #racePlotsForDave()
 
     race_event_file = "data/race_event_core.csv"
-    raceEventPlot(race_event_file)
+    raceEventPlot(race_event_file, seed)
     
-    histogram('data/transactions_0.csv', time_interval=(30/26))
+    residualDistancePlot(race_event_file, seed)
+    
+    
+    
+    #histogram('data/transactions_0.csv', time_interval=(30/26))
     
     #
     #comp_odds_file = "data/comp_odds_by_35.csv"

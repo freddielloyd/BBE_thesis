@@ -414,6 +414,11 @@ class Session:
 
         compPool = deepcopy(race.competitors)
         raceAttributes = deepcopy(race.race_attributes)
+        
+        race.printInitialConditions()
+        race.printCompPool()
+        
+    
 
 
         # create simulations for procurement of ex-ante odds for priveledged betters
@@ -434,8 +439,11 @@ class Session:
 
 
 class BBE(Session):
-    def __init__(self):
+    def __init__(self, seed):
         self.session = None
+        self.seed = seed
+        
+        #random.seed(1) # if set here race conditions and competitor pool different
         return
 
 
@@ -445,6 +453,7 @@ class BBE(Session):
         # Simulation attributes
         currentSimulation = 0
         ####################
+        
 
         # set things up
         # have while loop for running multiple races
@@ -452,18 +461,19 @@ class BBE(Session):
         # run simulation and matching engine
         while currentSimulation < NUM_OF_SIMS:
             
-            #random.seed(26) # if set here race and transactions identical on every sim
+            #random.seed(1) # if set here race and transactions identical on every sim
             #np.random.seed(26) # no np randoms used
 
             
             simulationId = "Simulation: " + str(currentSimulation)
             # Start up thread for race on which all other threads will wait
             self.session = Session()
+            random.seed()
             if argFunc:
                 argFunc(self.session)
             self.session.eventSession(currentSimulation)
             
-            plotting_main() # produce desired plots from plotting.py on each sim
+            plotting_main(self.seed) # produce desired plots from plotting.py on each sim
 
             currentSimulation = currentSimulation + 1
 
@@ -490,21 +500,16 @@ class BBE(Session):
         opinion_hist_s_df = pandas.DataFrame.from_dict(self.session.opinion_hist_s)
         opinion_hist_s_df.to_csv('data/opinions/opinion_hist_s.csv', index=False)
         
-        #plotting_main() # produce desired plots from plotting.py
         
 
 
-
 if __name__ == "__main__":
-    #import time
 
-    #for i in range(30):
     start = time.time()
-        #random.seed(i)
-    random.seed(26) # only reproducible for first sim if used here
+    random.seed(51) # only reproducible for first sim if used here
     #np.random.seed(100) # no numpy randoms used
     print('Running')
-    bbe = BBE()
+    bbe = BBE(51) # seed passed to BBE so can be used in title of plots for race identification
     print('Running')
     bbe.runSession()
     end = time.time()
@@ -512,3 +517,39 @@ if __name__ == "__main__":
     
     
 
+
+# =============================================================================
+# if __name__ == "__main__":
+# 
+#     for i in [22, 42, 51]:
+#         #print('seed: ', i)
+#         start = time.time()
+#         random.seed(i)
+#         #np.random.seed(i) # no numpy randoms used
+#         print('Running')
+#         bbe = BBE(i)
+#         print('Running')
+#         bbe.runSession()
+#         end = time.time()
+#         print('Time taken: ', end - start)
+# =============================================================================
+        
+
+# =============================================================================
+# 
+# if __name__ == "__main__":
+# 
+#     for i in range(100):
+#         #print('seed: ', i)
+#         start = time.time()
+#         random.seed(i)
+#         #np.random.seed(i) # no numpy randoms used
+#         print('Running')
+#         bbe = BBE(i)
+#         print('Running')
+#         bbe.runSession()
+#         end = time.time()
+#         print('Time taken: ', end - start)
+#         
+# =============================================================================
+        

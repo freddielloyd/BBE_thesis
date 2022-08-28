@@ -252,6 +252,9 @@ class GroupConversation:
         
         new_xi_opinion = sum(X_i_updates)/num_bettors
         
+        # HAVE NEW OPINION TAKE INTO ACCOUNT OLD OPINION
+        #new_opinion = 
+        
         #print('new X_i opinion: ', new_xi_opinion)
         
         self.bettor_initiator.set_opinion(new_xi_opinion)
