@@ -34,10 +34,19 @@ oneagents = [
           ('Agent_Opinionated_Priviledged', 1)
           ]
 
-agents = [
-          ('Agent_Opinionated_Back_Favourite',1),
-          ('Agent_Opinionated_Linex', 1),
-          ('Agent_Opinionated_Priviledged', 30)
+agents = [ 
+          ('Agent_Opinionated_Random', 10),
+          ('Agent_Opinionated_Leader_Wins', 10),
+          ('Agent_Opinionated_Underdog', 10),
+          ('Agent_Opinionated_Back_Favourite',10),
+          ('Agent_Opinionated_Linex', 10),
+          ('Agent_Opinionated_Priviledged', 10)
+          ]
+
+bagents = [
+          ('Agent_Opinionated_Back_Favourite',5),
+          ('Agent_Opinionated_Linex', 10),
+          ('Agent_Opinionated_Priviledged', 10)
           ]
 
 mixed_intelligence_agents = [

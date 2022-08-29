@@ -66,9 +66,47 @@ class Session:
         self.opinion_hist_s = {'id': [], 'time': [], 'opinion': [], 'competitor': []}
         self.competitor_odds = {'time': [], 'odds': [], 'competitor': []}
         self.competitor_distances = {'time': [], 'distance': [], 'competitor': []}
+        
+        self.pairwise_interaction_log = {'type': [], 
+                                         'time': [], 
+                                         'length': [],
+                                         'bettor1': [], 
+                                         'bettor1_id': [],
+                                         'b1_local_op1': [], 
+                                         'bettor2': [],
+                                         'bettor2_id': [],
+                                         'b2_local_op': [],
+                                         'local_op_gap': [],
+                                         'weight': [],
+                                         'b1_new_local_op': [],
+                                         'b2_new_local_op': []}
+        
+        #for i in range(NUM_OF_COMPETITORS):
+        #    res_distances['{}'.format(i)] = dataframe['{}'.format(i)] - reg_line
+        
+        self.group_interaction_log = {'type': [], 
+                                      'conv_id': [], 
+                                      'time': [], 
+                                      'length': [],
+                                      'bettor1': [], 
+                                      'bettor1_id': [],
+                                      'b1_local_op': [], 
+                                      'num_bettors': [],
+                                      'bettors': [],
+                                      'bettors_ids': [],
+                                      'bettors_local_ops': [],
+                                      #'local_op_gap': [],
+                                      'weights': [],
+                                      'ops_x_weights': [],
+                                      'b1_new_local_op': []}
+        
+        self.interaction_logs = {'pairwise' : self.pairwise_interaction_log,
+                                 'group' : self.group_interaction_log}
 
         self.generateRaceData()
         self.initialiseThreads()
+        
+        
 
     def exchangeLogic(self, exchange, exchangeOrderQ):
         """
@@ -88,6 +126,7 @@ class Session:
             marketUpdates = {}
             for i in range(NUM_OF_EXCHANGES):
                 marketUpdates[i] = self.exchanges[i].publishMarketState(timeInEvent)
+
 
             if timeInEvent < self.endOfInPlayBettingPeriod:
                 self.OpinionDynamicsPlatform.initiate_conversations(timeInEvent)
@@ -292,7 +331,11 @@ class Session:
         Initialise betting agents
         """
         self.populateMarket()
-        self.OpinionDynamicsPlatform = OpinionDynamicsPlatform(list(self.bettingAgents.values()), MODEL_NAME, NETWORK_NAME, INTERACTIONS)
+        self.OpinionDynamicsPlatform = OpinionDynamicsPlatform(list(self.bettingAgents.values()), 
+                                                               MODEL_NAME, 
+                                                               NETWORK_NAME, 
+                                                               INTERACTIONS, 
+                                                               self.interaction_logs)
         # Create threads for all betting agents that wait until event session
         # has started
        
@@ -431,7 +474,9 @@ class Session:
         self.lengthOfRace = race.race_attributes.length
         self.winningCompetitor = race.winner
         self.distances = race.raceData
+        print(race.winningTimestep)
         self.endOfInPlayBettingPeriod = race.winningTimestep - IN_PLAY_CUT_OFF_PERIOD
+        print(self.endOfInPlayBettingPeriod)
 
 
         createInPlayOdds(self.numberOfTimesteps)
@@ -501,7 +546,25 @@ class BBE(Session):
         opinion_hist_s_df.to_csv('data/opinions/opinion_hist_s.csv', index=False)
         
         
-
+        #print(self.session.interaction_logs['pairwise'])
+        
+        #for i in self.session.interaction_logs['pairwise'].values():
+        #    print(len(i))
+        
+        if INTERACTIONS == 'pairwise':
+            interaction_log_df = pandas.DataFrame.from_dict(self.session.interaction_logs['pairwise'], orient='index')
+            interaction_log_df = interaction_log_df.transpose() # essential with orient = index or else different lengths
+            interaction_log_df.to_csv('data/pairwise_interaction_log.csv', index=False, header=True)
+            
+            
+        elif INTERACTIONS == 'group':
+            interaction_log_df = pandas.DataFrame.from_dict(self.session.interaction_logs['group'], orient='index')
+            interaction_log_df = interaction_log_df.transpose()
+            interaction_log_df.to_csv('data/group_interaction_log.csv', index=False, header=True)
+            
+            
+            
+            
 
 if __name__ == "__main__":
 

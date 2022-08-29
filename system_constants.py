@@ -5,7 +5,7 @@ NUM_OF_SIMS = 1
 NUM_OF_COMPETITORS = 4
 NUM_OF_EXCHANGES = 1
 PRE_RACE_BETTING_PERIOD_LENGTH = 0
-IN_PLAY_CUT_OFF_PERIOD = 0
+IN_PLAY_CUT_OFF_PERIOD = 0 # chosen as 6 because is max conversation length
 SESSION_SPEED_MULTIPLIER = 1
 
 # Data Store Attributes
@@ -64,15 +64,15 @@ FUZZY_MFX = 'triangular'
 #FUZZY_MFX = 'trapezoidal'
 
 # Pairwise or group interactions
-INTERACTIONS = 'pairwise'
-#INTERACTIONS = 'group' # only for watts strogatz network within clusters
+#INTERACTIONS = 'pairwise'
+INTERACTIONS = 'group' # only for watts strogatz network within clusters
 
 # Network Structure
 
 #NETWORK_NAME = 'fully_connected'
 NETWORK_NAME = 'watts_strogatz'
-num_neighbours = 10
-rewiring_prob = 0.3
+num_neighbours = 6
+rewiring_prob = 0.25
 
 
 
