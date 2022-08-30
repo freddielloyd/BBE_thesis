@@ -37,37 +37,27 @@ class fuzzy_BC:
             # c-x/c-b, b<=x<=c
             # 0,       c<=x       
             
-# =============================================================================
-#             vs_mfx = fuzz.trimf(self.x,[0, 0, 0.1])     # very small
-#             qs_mfx = fuzz.trimf(self.x,[0, 0.1, 0.2])   # quite small
-#             s_mfx = fuzz.trimf(self.x,[0.1, 0.2, 0.3]) # small
-#             l_mfx = fuzz.trimf(self.x,[0.3, 0.4, 0.5]) # large
-#             ql_mfx = fuzz.trimf(self.x,[0.4, 0.5, 0.6]) # quite large
-#             vl_mfx = fuzz.trimf(self.x,[0.5, 1, 1])     # very large
-#             
-#             tri_mfxs = [vs_mfx, qs_mfx, s_mfx, l_mfx, ql_mfx, vl_mfx]
-# =============================================================================
-
-            
-            
             # Generate triangular membership functions 
             
-            # Opinion Gap Membership
-            op_vsm = fuzz.trimf(self.x_opinion_gap, [0, 0, 0.1]) # very small
-            op_qsm = fuzz.trimf(self.x_opinion_gap, [0, 0.1, 0.2]) # quite small
-            op_sm = fuzz.trimf(self.x_opinion_gap, [0.1, 0.2, 0.3]) # small
-            op_l = fuzz.trimf(self.x_opinion_gap, [0.3, 0.4, 0.5]) # large
-            op_ql = fuzz.trimf(self.x_opinion_gap, [0.4, 0.5, 0.6]) # quite large
-            op_vl = fuzz.trimf(self.x_opinion_gap, [0.5, 1, 1]) # very large
-            
-            
-            # Agent interaction update weight membership
-            w_vstr = fuzz.trimf(self.x_weight, [0.8, 1, 1]) # very strong
-            w_qstr = fuzz.trimf(self.x_weight, [0.6, 0.8, 1]) # quite strong
-            w_str = fuzz.trimf(self.x_weight, [0.4, 0.6, 0.8]) # strong
-            w_w = fuzz.trimf(self.x_weight, [0.2, 0.4, 0.6]) # weak
-            w_qw = fuzz.trimf(self.x_weight, [0, 0.2, 0.4]) # quite weak
-            w_vw = fuzz.trimf(self.x_weight, [0, 0, 0.2]) # very weak
+            # test membership functions
+# =============================================================================
+#             # Opinion Gap Membership
+#             op_vsm = fuzz.trimf(self.x_opinion_gap, [0, 0, 0.1]) # very small
+#             op_qsm = fuzz.trimf(self.x_opinion_gap, [0, 0.1, 0.2]) # quite small
+#             op_sm = fuzz.trimf(self.x_opinion_gap, [0.1, 0.2, 0.3]) # small
+#             op_l = fuzz.trimf(self.x_opinion_gap, [0.3, 0.4, 0.5]) # large
+#             op_ql = fuzz.trimf(self.x_opinion_gap, [0.4, 0.5, 0.6]) # quite large
+#             op_vl = fuzz.trimf(self.x_opinion_gap, [0.5, 1, 1]) # very large
+#             
+#             
+#             # Agent interaction update weight membership
+#             w_vstr = fuzz.trimf(self.x_weight, [0.8, 1, 1]) # very strong
+#             w_qstr = fuzz.trimf(self.x_weight, [0.6, 0.8, 1]) # quite strong
+#             w_str = fuzz.trimf(self.x_weight, [0.4, 0.6, 0.8]) # strong
+#             w_w = fuzz.trimf(self.x_weight, [0.2, 0.4, 0.6]) # weak
+#             w_qw = fuzz.trimf(self.x_weight, [0, 0.2, 0.4]) # quite weak
+#             w_vw = fuzz.trimf(self.x_weight, [0, 0, 0.2]) # very weak
+# =============================================================================
 
 
             # Opinion Gap Membership - NEW: 0.276 is very large and correspond to zero weight
@@ -85,40 +75,11 @@ class fuzzy_BC:
             w_w = fuzz.trimf(self.x_weight, [0.33, 0.33, 0.58]) # weak
             w_qw = fuzz.trimf(self.x_weight, [0, 0.03, 0.35]) # quite weak
             w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
-
-
-
-# =============================================================================
-#             tri_mfxs = []
-# 
-#             if 0 <= opinion_gap <= 0.1:
-#                 vs_mfx = fuzz.trimf(self.x,[0, 0, 0.1])     # very small
-#                 tri_mfxs.append(vs_mfx)
-#             if 0 <= opinion_gap <= 0.2:
-#                 qs_mfx = fuzz.trimf(self.x,[0, 0.1, 0.2])     # quite small
-#                 tri_mfxs.append(qs_mfx)
-#             if 0.1 <= opinion_gap <= 0.3:
-#                 s_mfx = fuzz.trimf(self.x,[0.1, 0.2, 0.3])     # small
-#                 tri_mfxs.append(s_mfx)
-#             if 0.3 <= opinion_gap <= 0.5:
-#                 l_mfx = fuzz.trimf(self.x,[0.3, 0.4, 0.5])     # large
-#                 tri_mfxs.append(l_mfx)
-#             if 0.4 <= opinion_gap <= 0.6:
-#                 ql_mfx = fuzz.trimf(self.x,[0.4, 0.5, 0.6])     # quite large
-#                 tri_mfxs.append(ql_mfx)
-#             if 0.5 <= opinion_gap <= 1:
-#                 vl_mfx = fuzz.trimf(self.x,[0.5, 1, 1])     # very large
-#                 tri_mfxs.append(vl_mfx)
-#                 
-#             return tri_mfxs
-# =============================================================================
-
             
             
             # We need the activation of our fuzzy membership functions at a value for opinion gap.
             # fuzz.interp_membership retrieves the y value for where the given opinion gap x value meets any of the 
             # triangular membership functions
-            
             
             op_level_vsm = fuzz.interp_membership(self.x_opinion_gap, op_vsm, opinion_gap)
             op_level_qsm = fuzz.interp_membership(self.x_opinion_gap, op_qsm, opinion_gap)
@@ -139,13 +100,11 @@ class fuzzy_BC:
             w_activation_5 = np.fmin(op_level_ql, w_qw)   
             w_activation_6 = np.fmin(op_level_vl, w_vw)         
             
-            
-            
+
             # array of zeros same length as input array
             weight0 = np.zeros_like(self.x_weight)
             
-            
-                    
+
             # Aggregate all six output membership functions together by taking element wise maximums
             aggregated = np.fmax(w_activation_1,
                                  np.fmax(w_activation_2,
@@ -153,12 +112,6 @@ class fuzzy_BC:
                                                  np.fmax(w_activation_4,
                                                          np.fmax(w_activation_5, w_activation_6)))))
             
-            
-            
-            
-            
-            #for i in range(len(x_weight)):
-            #    print(x_weight[i], aggregated[i])
     
             # Calculate defuzzified result
             crisp_weight = fuzz.defuzz(self.x_weight, aggregated, 'centroid')

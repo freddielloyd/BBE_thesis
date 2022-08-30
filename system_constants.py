@@ -64,8 +64,8 @@ FUZZY_MFX = 'triangular'
 #FUZZY_MFX = 'trapezoidal'
 
 # Pairwise or group interactions
-#INTERACTIONS = 'pairwise'
-INTERACTIONS = 'group' # only for watts strogatz network within clusters
+INTERACTION_TYPE = 'pairwise'
+#INTERACTION_TYPE = 'group' # only for watts strogatz network within clusters
 
 # Network Structure
 
@@ -77,5 +77,5 @@ rewiring_prob = 0.25
 
 
 # method for interaction participant selection
-#interaction_method = 'direct neighbours'
-#interaction_method = 'novel method'
+#INTERACTION_SELECTION = 'direct_neighbours'
+INTERACTION_SELECTION = 'across_network'

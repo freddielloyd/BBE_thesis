@@ -72,17 +72,15 @@ class Session:
                                          'length': [],
                                          'bettor1': [], 
                                          'bettor1_id': [],
-                                         'b1_local_op1': [], 
+                                         'b1_local_op': [], 
                                          'bettor2': [],
                                          'bettor2_id': [],
+                                         'deg_of_connection': [],
                                          'b2_local_op': [],
                                          'local_op_gap': [],
                                          'weight': [],
                                          'b1_new_local_op': [],
-                                         'b2_new_local_op': []}
-        
-        #for i in range(NUM_OF_COMPETITORS):
-        #    res_distances['{}'.format(i)] = dataframe['{}'.format(i)] - reg_line
+                                         'b2_new_local_op': []}     
         
         self.group_interaction_log = {'type': [], 
                                       'conv_id': [], 
@@ -134,8 +132,6 @@ class Session:
 
             else:
                 self.OpinionDynamicsPlatform.settle_opinions(self.winningCompetitor)
-
-
 
             (transactions, markets) = exchange.processOrder(timeInEvent, order)
 
@@ -275,18 +271,16 @@ class Session:
             if name == 'Agent_Opinionated_Priviledged': return Agent_Opinionated_Priviledged(id, name, self.lengthOfRace, self.endOfInPlayBettingPeriod, 1, local_opinion, uncertainty, MIN_OP, MAX_OP)
 
 
-# =============================================================================
-#             if name == 'Agent_Opinionated_Random': return Agent_Opinionated_Random(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion, uncertainty, MIN_OP, MAX_OP )
-#             if name == 'Agent_Opinionated_Leader_Wins': return Agent_Opinionated_Leader_Wins(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion, uncertainty, MIN_OP, MAX_OP )
-#             if name == 'Agent_Opinionated_Underdog': return Agent_Opinionated_Underdog(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion, uncertainty, MIN_OP, MAX_OP)
-#             if name == "Agent_Opinionated_Back_Favourite": return Agent_Opinionated_Back_Favourite(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion, uncertainty, MIN_OP, MAX_OP)
-#             if name == 'Agent_Opinionated_Linex': return Agent_Opinionated_Linex(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion,uncertainty, MIN_OP, MAX_OP)
-# 
-#             if name == 'Agent_Opinionated_Priviledged': return Agent_Opinionated_Priviledged(id, name, lengthOfRace, endOfInPlayBettingPeriod, 1, local_opinion, uncertainty, MIN_OP, MAX_OP)
-# 
-# 
-# =============================================================================
+            #if name == 'Agent_Opinionated_Random': return Agent_Opinionated_Random(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion, uncertainty, MIN_OP, MAX_OP )
+            #if name == 'Agent_Opinionated_Leader_Wins': return Agent_Opinionated_Leader_Wins(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion, uncertainty, MIN_OP, MAX_OP )
+            #if name == 'Agent_Opinionated_Underdog': return Agent_Opinionated_Underdog(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion, uncertainty, MIN_OP, MAX_OP)
+            #if name == "Agent_Opinionated_Back_Favourite": return Agent_Opinionated_Back_Favourite(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion, uncertainty, MIN_OP, MAX_OP)
+            #if name == 'Agent_Opinionated_Linex': return Agent_Opinionated_Linex(id, name, lengthOfRace, endOfInPlayBettingPeriod, 0, local_opinion,uncertainty, MIN_OP, MAX_OP)
 
+            #if name == 'Agent_Opinionated_Priviledged': return Agent_Opinionated_Priviledged(id, name, lengthOfRace, endOfInPlayBettingPeriod, 1, local_opinion, uncertainty, MIN_OP, MAX_OP)
+
+        # shuffle agents to prevent agents of same type automatically having adjacent ids
+        # and therefore connected in network
         id = 0
         for agent in config.agents:
             type = agent[0]
@@ -300,7 +294,6 @@ class Session:
         random.shuffle(to_shuffle)  # ensures all types of bettors are mixed up rather than all adjacent
         #print(to_shuffle)
         
-        
         self.bettingAgents = dict(zip(self.bettingAgents, to_shuffle))
         #print(self.bettingAgents)
         
@@ -310,12 +303,6 @@ class Session:
             new_id = list(self.bettingAgents.keys())[i]
             agent.shuffled_id = new_id # set id to new id after shuffling so can match up as needed
             #print(agent, agent.id, agent.shuffled_id)
-            
-        
-        #print(self.bettingAgents)
-        
-        #print(self.bettingAgents.values())
-        #print(self.bettingAgents.items())
 
 
     def initialiseExchanges(self):
@@ -334,11 +321,12 @@ class Session:
         self.OpinionDynamicsPlatform = OpinionDynamicsPlatform(list(self.bettingAgents.values()), 
                                                                MODEL_NAME, 
                                                                NETWORK_NAME, 
-                                                               INTERACTIONS, 
+                                                               INTERACTION_TYPE,
+                                                               INTERACTION_SELECTION,
                                                                self.interaction_logs)
+        
         # Create threads for all betting agents that wait until event session
         # has started
-       
         for id, agent in self.bettingAgents.items():
             #print(id, agent)
             self.bettingAgentQs[id] = queue.Queue()
@@ -413,10 +401,6 @@ class Session:
             print(i)
             time.sleep(1 / SESSION_SPEED_MULTIPLIER)
 
-
-
-
-
         # End event
         self.event.clear()
 
@@ -443,8 +427,6 @@ class Session:
         #for id, agent in self.bettingAgents.items():
         #    print("Agent " + str(id) + "\'s final balance: " + str(agent.balance))
 
-
-
         createstats(self.bettingAgents, simulationId, self.tape, self.priceRecord, self.spreads)
 
     def initialiseThreads(self):
@@ -460,15 +442,11 @@ class Session:
         
         race.printInitialConditions()
         race.printCompPool()
-        
-    
-
 
         # create simulations for procurement of ex-ante odds for priveledged betters
         createExAnteOdds(compPool, raceAttributes)
 
         race.run("core")
-        
         
         self.numberOfTimesteps = race.numberOfTimesteps
         self.lengthOfRace = race.race_attributes.length
@@ -546,18 +524,13 @@ class BBE(Session):
         opinion_hist_s_df.to_csv('data/opinions/opinion_hist_s.csv', index=False)
         
         
-        #print(self.session.interaction_logs['pairwise'])
-        
-        #for i in self.session.interaction_logs['pairwise'].values():
-        #    print(len(i))
-        
-        if INTERACTIONS == 'pairwise':
+        if INTERACTION_TYPE == 'pairwise':
             interaction_log_df = pandas.DataFrame.from_dict(self.session.interaction_logs['pairwise'], orient='index')
             interaction_log_df = interaction_log_df.transpose() # essential with orient = index or else different lengths
             interaction_log_df.to_csv('data/pairwise_interaction_log.csv', index=False, header=True)
             
             
-        elif INTERACTIONS == 'group':
+        elif INTERACTION_TYPE == 'group':
             interaction_log_df = pandas.DataFrame.from_dict(self.session.interaction_logs['group'], orient='index')
             interaction_log_df = interaction_log_df.transpose()
             interaction_log_df.to_csv('data/group_interaction_log.csv', index=False, header=True)

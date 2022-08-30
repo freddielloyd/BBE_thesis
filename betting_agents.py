@@ -84,6 +84,9 @@ class BettingAgent:
         self.influenced_by_opinions = influenced_by_opinions  # [0,1] values. 0 - agent shares opinions, but does not listen.
         # 1 - agent shares and listens to opinions
         self.in_conversation = 0
+        
+        # degree of connection attribute for interaction selection probability
+        self.degree_of_connection = None
 
     def observeRaceState(self, timestep, compDistances):
         if self.raceStarted == False: self.raceStarted = True
