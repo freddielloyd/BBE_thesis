@@ -71,11 +71,12 @@ INTERACTION_TYPE = 'pairwise'
 
 #NETWORK_NAME = 'fully_connected'
 NETWORK_NAME = 'watts_strogatz'
+# network parameters - irrelevant for fully connected network
 num_neighbours = 6
 rewiring_prob = 0.25
 
 
 
-# method for interaction participant selection
+# method for network interaction participant selection - irrelevant for fully connected network
 #INTERACTION_SELECTION = 'direct_neighbours'
 INTERACTION_SELECTION = 'across_network'

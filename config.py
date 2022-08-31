@@ -25,16 +25,16 @@
 #           ]
 # =============================================================================
 
-oneagents = [ 
+agents = [ 
           ('Agent_Opinionated_Random', 1),
           ('Agent_Opinionated_Leader_Wins', 1),
           ('Agent_Opinionated_Underdog', 1),
           ('Agent_Opinionated_Back_Favourite',1),
           ('Agent_Opinionated_Linex', 1),
-          ('Agent_Opinionated_Priviledged', 1)
+          ('Agent_Opinionated_Priviledged', 10)
           ]
 
-agents = [ 
+wagents = [ 
           ('Agent_Opinionated_Random', 10),
           ('Agent_Opinionated_Leader_Wins', 10),
           ('Agent_Opinionated_Underdog', 10),

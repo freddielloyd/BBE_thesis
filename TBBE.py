@@ -92,6 +92,7 @@ class Session:
                                       'num_bettors': [],
                                       'bettors': [],
                                       'bettors_ids': [],
+                                      'degs_of_connection': [],
                                       'bettors_local_ops': [],
                                       #'local_op_gap': [],
                                       'weights': [],
