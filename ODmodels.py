@@ -218,6 +218,8 @@ class GroupConversation:
         self.conversation_length = random.uniform(2, 6)
         self.in_progress = 1
         
+        #print(self.other_bettors)
+        
         for bettor in self.other_bettors:
             bettor.in_conversation = 1
             
@@ -259,7 +261,8 @@ class GroupConversation:
                                            #'local_op_gap': [],
                                            'weights': [],
                                            'ops_x_weights': [],
-                                           'b1_new_local_op': []}
+                                           'b1_new_local_op': [],
+                                           'b1_op_change': []}
        
         temp_group_interaction_log['type'].append(self.model)         
         temp_group_interaction_log['conv_id'].append(self.id)         
@@ -351,6 +354,8 @@ class GroupConversation:
 
         temp_group_interaction_log['b1_new_local_op'].append(self.new_xi_opinion)
         
+        temp_group_interaction_log['b1_op_change'].append(self.new_xi_opinion - X_i)
+        
         # HAVE NEW OPINION TAKE INTO ACCOUNT OLD OPINION
         #new_opinion = 
         
@@ -367,8 +372,7 @@ class GroupConversation:
         # necessary to do this way as conversations vary in length so done this way
         # to correctly keep each row of data together
         for key, value in temp_group_interaction_log.items():
-            
-            self.interaction_log[key].append(value)
+            self.interaction_log[key].append(value[0])
             
        
 
@@ -444,18 +448,28 @@ class OpinionDynamicsPlatform:
         if self.interaction_type == 'pairwise':
         
             if self.network_structure == 'fully_connected':
+                
+                #for bettor in self.all_opinionated:
+                #    bettor.degree_of_connection = 'N/A'
     
-                for bettor in self.available_influenced_by_opinions:
+                #for bettor in self.available_influenced_by_opinions:
+                while len(self.available_influenced_by_opinions) > 0:
+                    
+                    bettor = self.available_influenced_by_opinions[0]
         
                     bettor1 = bettor
                     bettor2 = bettor
                     
                     while bettor1 == bettor2:
-                        if len(self.available_influenced_by_opinions) == 0 or len(self.available_opinionated) < 2:
+                        #if len(self.available_influenced_by_opinions) == 0 or len(self.available_opinionated) < 2:
+                        
+                        # if not at least one other available bettor, return
+                        if len(self.available_opinionated) < 2:
                             return
                         else:
                             num_bettors_to_select = 1
                             bettor2 = random.sample(self.available_opinionated, num_bettors_to_select)[0]
+                            #self.bettor2.degree_of_connection = 'N/A'
                             
                     id = self.number_of_conversations
         
@@ -463,10 +477,10 @@ class OpinionDynamicsPlatform:
         
                     self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
                                                              bettor.in_conversation == 0]
+                    
                     self.available_opinionated = [bettor for bettor in self.all_opinionated if
                                                   bettor.in_conversation == 0]
                     
-        
                     self.conversations.append(Conversation)
                     self.number_of_conversations = self.number_of_conversations + 1
                     
@@ -485,48 +499,55 @@ class OpinionDynamicsPlatform:
                     bettor1 = bettor
                     bettor2 = bettor
                     
-                    self.bettor1_id = self.all_opinionated.index(bettor1)
+                    bettor1_id = self.all_opinionated.index(bettor1)
                     
                     # retrieve neighbour ids based on created network, implying id in list is its node id in network
-                    self.bettor_neighbours_ids = self.network.edge(self.bettor1_id)
+                    bettor_neighbours_ids = self.network.edge(bettor1_id)
 
-                    self.all_neighbours = []
+                    bettor1_neighbours = []
                     
-                    for i in self.bettor_neighbours_ids:
+                    for i in bettor_neighbours_ids:
                         
-                        self.all_neighbours.append(self.all_opinionated[i])
+                        bettor1_neighbours.append(self.all_opinionated[i])
                     
                     
-                    self.available_neighbours = [bettor for bettor in self.all_neighbours if
-                                                  bettor.in_conversation == 0]
+                    self.available_neighbours = [bettor for bettor in bettor1_neighbours if
+                                                 bettor.in_conversation == 0]
                     
-            
                     while bettor1 == bettor2:
-                        
-                        if len(self.available_influenced_by_opinions) == 0 or len(self.available_neighbours) < 1:
-                            return
-                        else:
-                            num_bettors_to_select = 1
-                            bettor2 = self.select_network_interaction_bettors(self.interaction_type,
-                                                                              self.interaction_selection,
-                                                                              num_bettors_to_select)
+                        num_bettors_to_select = 1
+                        #if len(self.available_influenced_by_opinions) == 0 or len(self.available_neighbours) < 1:
+                        #    return
+                        if self.interaction_selection == 'direct_neighbours':
+                            # if not at least one available neighbour, return
+                            if len(self.available_neighbours) < 1:
+                                return
+                            else:
+                                bettor2 = self.select_network_interaction_bettors(self.interaction_type,
+                                                                                  self.interaction_selection,
+                                                                                  num_bettors_to_select)
+                        elif self.interaction_selection == 'across_network':
+                            # if not at least one other available bettor, return
+                            if len(self.available_opinionated) < 2:
+                                return
+                            else:
+                                bettor2 = self.select_network_interaction_bettors(self.interaction_type,
+                                                                                  self.interaction_selection,
+                                                                                  num_bettors_to_select)
 
-  
                     id = self.number_of_conversations
-                    
-                    #self.bettor2_id = self.all_opinionated.index(bettor2)
 
-                    print(bettor1)
-                    print('bettor1 in conversation pre: ', bettor1.in_conversation)
-                    print(bettor2)
-                    print('bettor2 in conversation pre: ', bettor2.in_conversation)        
+                    #print(bettor1)
+                    #print('bettor1 in conversation pre: ', bettor1.in_conversation)
+                    #print(bettor2)
+                    #print('bettor2 in conversation pre: ', bettor2.in_conversation)        
 
                     Conversation = LocalConversation(id, bettor1, bettor2, time, self.model, self.interaction_log)
                     
-                    print(bettor1)
-                    print('bettor1 in conversation post: ', bettor1.in_conversation)
-                    print(bettor2)
-                    print('bettor2 in conversation post: ', bettor2.in_conversation)
+                    #print(bettor1)
+                    #print('bettor1 in conversation post: ', bettor1.in_conversation)
+                    #print(bettor2)
+                    #print('bettor2 in conversation post: ', bettor2.in_conversation)
         
                     self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
                                                              bettor.in_conversation == 0]
@@ -543,24 +564,32 @@ class OpinionDynamicsPlatform:
             
             if self.network_structure == 'fully_connected':
                 
-                for bettor in self.available_influenced_by_opinions:
+                #for bettor in self.available_influenced_by_opinions:
+                
+                # changed to while loop to solve error of bettor2 being selected as another priv bettor
+                # who was then iterated through in for loop, and therefore initiating interactions
+                # while they were still in initial interaction, or vice versa in being selected for an interaction
+                # having already initiated an interaction in the initial for loop
+                while len(self.available_influenced_by_opinions) > 0:
                     
+                    bettor = self.available_influenced_by_opinions[0]
+
                     bettor1 = bettor
 
-                    if len(self.available_influenced_by_opinions) == 0 or len(self.available_opinionated) < 2:
+                    #if len(self.available_influenced_by_opinions) == 0 or len(self.available_opinionated) < 2:
+                    #    return
+                    
+                    # if not at least one other available bettor, return
+                    if len(self.available_opinionated) < 2:
                         return
                     
-                    elif len(self.available_opinionated) >= 2:
-    
+                    else:
                         # number of other bettors to be in group conversation
-                        num_bettors_to_select = random.randint(1, len(self.available_opinionated))
-                        
+                        num_bettors_to_select = random.randint(1, min(10, len(self.available_opinionated)))
                         conv_group = random.sample(self.available_opinionated, num_bettors_to_select) # rndomly select given amount of available neighbours
                     
                     # if bettor1 in the group, resample until not in group
                     while bettor1 in conv_group:
-                        num_bettors_to_select = random.randint(1, len(self.available_opinionated))
-
                         conv_group = random.sample(self.available_opinionated, num_bettors_to_select)
                         
                             
@@ -579,61 +608,57 @@ class OpinionDynamicsPlatform:
                     
                 
             elif self.network_structure == 'watts_strogatz':
-
-                #print(self.available_influenced_by_opinions)
                 
-                for bettor in self.available_influenced_by_opinions:
+                #for bettor in self.available_influenced_by_opinions:
                     
-                    bettor1 = bettor
+                # changed to while loop to solve error of bettor2 being selected as another priv bettor
+                # who was then iterated through in for loop, and therefore initiating interactions
+                # while they were still in initial interaction, or vice versa in being selected for an interaction
+                # having already initiated an interaction in the initial for loop
+                while len(self.available_influenced_by_opinions) > 0:
                     
-                    bettor1_id = self.all_opinionated.index(bettor1)
+                    bettor = self.available_influenced_by_opinions[0]
+
+                    self.bettor1 = bettor
                     
-                    bettor_neighbours_ids = self.network.edge(bettor1_id)
+                    self.bettor1_id = self.all_opinionated.index(self.bettor1)
+                    
+                    bettor_neighbours_ids = self.network.edge(self.bettor1_id)
                           
                     all_neighbours = []
                     
                     for i in bettor_neighbours_ids:
-                        
                         all_neighbours.append(self.all_opinionated[i])
                         
                     
-                    available_neighbours = [bettor for bettor in all_neighbours if
-                                            bettor.in_conversation == 0]
-                    
+                    self.available_neighbours = [bettor for bettor in all_neighbours if
+                                                 bettor.in_conversation == 0]   
                     
                     if self.interaction_selection == 'direct_neighbours':
-                        if len(self.available_influenced_by_opinions) == 0 or len(available_neighbours) < 1:
-                            return
-                        
-                        elif len(available_neighbours) >= 1:
-    
-                            # number of other bettors to be in group conversation
-                            num_bettors_to_select = random.randint(1, len(available_neighbours))
-                            
-                            conv_group = self.select_network_interaction_bettors(self.interaction_type,
-                                                                         self.interaction_selection,
-                                                                         num_bettors_to_select)
-                            
-                            #conv_group = random.sample(available_neighbours, num_bettors_in_conv)
-
-
-                    elif self.interaction_selection == 'across_network':
-                        if len(self.available_influenced_by_opinions) == 0 or len(self.available_opinionated) < 2:
+                        # if not at least one available neighbour, return
+                        if len(self.available_neighbours) < 1:
                             return
                         else:
-                            # number of other bettors to be in group conversation
-                            num_bettors_to_select = random.randint(1, len(self.available_opinionated))
-
+                            # number of other bettors to be in group conversation, maximum 10
+                            num_bettors_to_select = random.randint(1, min(10, len(self.available_neighbours)))
                             conv_group = self.select_network_interaction_bettors(self.interaction_type,
                                                                                  self.interaction_selection,
                                                                                  num_bettors_to_select)
 
+                    elif self.interaction_selection == 'across_network':
+                        # if not at least one other available bettor, return
+                        if len(self.available_opinionated) < 2:
+                            return
+                        else:
+                            # number of other bettors to be in group conversation
+                            num_bettors_to_select = random.randint(1, min(10, len(self.available_opinionated)))
+                            conv_group = self.select_network_interaction_bettors(self.interaction_type,
+                                                                                 self.interaction_selection,
+                                                                                 num_bettors_to_select)
 
-                            
                     id = self.number_of_conversations
                     
-                    Conversation = GroupConversation(id, bettor1, conv_group, time, self.model, self.interaction_log)
-                    
+                    Conversation = GroupConversation(id, self.bettor1, conv_group, time, self.model, self.interaction_log)
         
                     self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
                                                              bettor.in_conversation == 0]
@@ -641,10 +666,10 @@ class OpinionDynamicsPlatform:
                     self.available_opinionated = [bettor for bettor in self.all_opinionated if
                                                   bettor.in_conversation == 0]
                     
-        
                     self.conversations.append(Conversation)
                     self.number_of_conversations = self.number_of_conversations + 1
                         
+
 
 
     def select_network_interaction_bettors(self, interaction_type, interaction_selection, num_bettors_to_select):
@@ -654,6 +679,11 @@ class OpinionDynamicsPlatform:
         
         num_bettors_to_select = num_bettors_to_select
         
+        def weighted_sample_without_replacement(population, weights, k, rng=random):
+            v = [rng.random() ** (1 / w) for w in weights]
+            order = sorted(range(len(population)), key=lambda i: v[i])
+            return [population[i] for i in order[-k:]]
+        
         if self.interaction_selection == 'direct_neighbours':
             
             for bettor in self.all_opinionated:
@@ -661,13 +691,15 @@ class OpinionDynamicsPlatform:
             
             if self.interaction_type == 'pairwise':
                 # randomly select one available neighbour
-                bettor2 = random.sample(self.available_neighbours, num_bettors_to_select)[0]
-                #bettor2.degree_of_connection = 1
+                bettor2 = random.sample(self.available_neighbours,
+                                        num_bettors_to_select)[0]
                 return bettor2
             
-            if self.interaction_type == 'group':
+            elif self.interaction_type == 'group':
                 # randomly select given amount of available neighbours
-                conv_group = random.sample(self.available_neighbours, num_bettors_to_select)[0]
+                conv_group = random.sample(self.available_neighbours, 
+                                           num_bettors_to_select,
+                                           replace = False)
                 return conv_group
                 
     
@@ -686,7 +718,6 @@ class OpinionDynamicsPlatform:
                     bettor.degree_of_connection = 1
                     continue
                     
-                #neighbours_neighbours = []
                 for neighbour_id in bettor_neighbours_ids:
                     neighbours_neighbours_ids = self.network.edge(neighbour_id)
                     connection_found = False
@@ -710,40 +741,75 @@ class OpinionDynamicsPlatform:
                 else:
                     # if not 0,1,2 or 3 degree of connection then record 4+ as 4
                     bettor.degree_of_connection = 4
-                
-            probability_distribution = []
+            
+            # remove bettor 1 from self.available_opinionated so cant be selected
+            self.available_opinionated.remove(self.bettor1)
+            
+            sample_prob_distribution = []
                 
             for bettor in self.available_opinionated:
-                if bettor.degree_of_connection == 0:
-                    probability_distribution.append(0) # zero probability of selecting self
-                elif bettor.degree_of_connection == 1:
-                    probability_distribution.append(4/len(self.available_opinionated)) # highest prob
+                #if bettor.degree_of_connection == 0:
+                #    # zero probability of selecting self (given as miniscule non-zero number as necessary for use
+                #    #                                     in weighted_sample_without_replacement function)
+                #    probability_distribution.append(0.00000001) # zero probability of selecting self
+                if bettor.degree_of_connection == 1:
+                    sample_prob_distribution.append(4/len(self.available_opinionated)) # highest prob
                 elif bettor.degree_of_connection == 2:
-                    probability_distribution.append(3/len(self.available_opinionated))
+                    sample_prob_distribution.append(3/len(self.available_opinionated))
                 elif bettor.degree_of_connection == 3:
-                    probability_distribution.append(2/len(self.available_opinionated))
+                    sample_prob_distribution.append(2/len(self.available_opinionated))
                 elif bettor.degree_of_connection == 4:
-                    probability_distribution.append(1/len(self.available_opinionated)) # lowest prob
+                    sample_prob_distribution.append(1/len(self.available_opinionated)) # lowest prob
                     
             #print(probability_distribution)
             #print(sum(probability_distribution))
                     
             # normalise probability distribution so sums to one
-            norm_prob_dist = [prob/sum(probability_distribution) for prob in probability_distribution]
-            #print(norm_prob_dist)
-            print(sum(norm_prob_dist))
+            norm_sample_prob_dist = [prob/sum(sample_prob_distribution) for prob in sample_prob_distribution]
+            #print(norm_prob_dist, num_bettors_to_select)
+            #print(sum(norm_prob_dist))
             
             if self.interaction_type == 'pairwise':
                 # select one bettor randomly with given probability distribution
-                bettor2 = np.random.choice(self.available_opinionated, num_bettors_to_select,
-                                           p=norm_prob_dist)[0]
+                bettor2 = np.random.choice(self.available_opinionated, 
+                                           num_bettors_to_select,
+                                           p = norm_sample_prob_dist)[0]
                 return bettor2
             
             elif self.interaction_type == 'group':
-                # select chosen number of bettors randomly with given probability distribution
-                bettors = np.random.choice(self.available_opinionated, num_bettors_to_select,
-                                           p=norm_prob_dist)[0]
+                
+                #print(self.bettor1)
+                #print(self.available_opinionated)
+                
+                # remove bettor 1 from self.available_opinionated
+                #self.available_opinionated.remove(self.bettor1)
+                
+                #print(bettors_to_sample_from)
+                
+                bettors = weighted_sample_without_replacement(population = self.available_opinionated, 
+                                                              weights = norm_sample_prob_dist,
+                                                              k = num_bettors_to_select,
+                                                              rng=random)
                 return bettors
+                
+# =============================================================================
+#                 # need to sample from list without interaction initiator as sample without replacement
+#                 # does not reduce size of probability distribution list so occasionally picks itself
+#                 # to be included in group with non zero probability
+#                 
+#                 if len(self.available_opinionated) > num_bettors_to_select:
+#                     # select chosen number of bettors randomly with given probability distribution
+#                     bettors = np.random.choice(self.available_opinionated, 
+#                                                num_bettors_to_select,
+#                                                replace = False,
+#                                                p = norm_prob_dist)
+#                     return bettors
+#                 # necessary condition as without causes error with np.random.choice without replacement
+#                 elif len(self.available_opinionated) ==  num_bettors_to_select:
+#                     bettors = self.available_opinionated
+#                     return bettors
+#                     
+# =============================================================================
             
  
                 

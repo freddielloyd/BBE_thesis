@@ -97,7 +97,8 @@ class Session:
                                       #'local_op_gap': [],
                                       'weights': [],
                                       'ops_x_weights': [],
-                                      'b1_new_local_op': []}
+                                      'b1_new_local_op': [],
+                                      'b1_op_change': []}
         
         self.interaction_logs = {'pairwise' : self.pairwise_interaction_log,
                                  'group' : self.group_interaction_log}

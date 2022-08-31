@@ -64,8 +64,8 @@ FUZZY_MFX = 'triangular'
 #FUZZY_MFX = 'trapezoidal'
 
 # Pairwise or group interactions
-INTERACTION_TYPE = 'pairwise'
-#INTERACTION_TYPE = 'group' # only for watts strogatz network within clusters
+#INTERACTION_TYPE = 'pairwise'
+INTERACTION_TYPE = 'group' # only for BC and fuzzy BC models
 
 # Network Structure
 
