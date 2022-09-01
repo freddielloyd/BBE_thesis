@@ -21,7 +21,7 @@ def calculate_ema(odds, timesteps, smoothing=2):
 
 class LocalConversation:
 
-    def __init__(self, id, bettor1, bettor2, start_time, model, interaction_log):
+    def __init__(self, id, bettor1, bettor2, start_time, model, interaction_log, muddle_opinions):
         self.id = id
         self.bettor1 = bettor1
         self.bettor2 = bettor2
@@ -33,6 +33,8 @@ class LocalConversation:
         self.bettor2.in_conversation = 1
         
         self.interaction_log = interaction_log
+        
+        self.muddle_opinions = muddle_opinions
         
         # bettors degree of connection will have changed when fuzzy step called so set here
         # to be able to append to interaction log correctly
@@ -136,14 +138,16 @@ class LocalConversation:
                                          'bettor2_id': [],
                                          'deg_of_connection': [],
                                          'b2_local_op': [],
+                                         'b2_expressed_op': [],
                                          'local_op_gap': [],
                                          'weight': [],
                                          'b1_new_local_op': [],
+                                         'b1_op_change': [],
                                          'b2_new_local_op': []} 
         
         temp_pairwise_interaction_log['type'].append(self.model)                
-        temp_pairwise_interaction_log['time'].append(self.start_time)
-        temp_pairwise_interaction_log['length'].append(self.conversation_length)        
+        temp_pairwise_interaction_log['time'].append(round(self.start_time, 2))
+        temp_pairwise_interaction_log['length'].append(round(self.conversation_length, 2))        
         temp_pairwise_interaction_log['bettor1'].append(str(self.bettor1).lstrip("<betting_agents.Agent_Opinionated_").split().pop(0))
         temp_pairwise_interaction_log['bettor1_id'].append(self.bettor1.shuffled_id)    
         temp_pairwise_interaction_log['bettor2'].append(str(self.bettor2).lstrip("<betting_agents.Agent_Opinionated_").split().pop(0))
@@ -155,11 +159,18 @@ class LocalConversation:
         X_i = self.bettor1.local_opinion
         X_j = self.bettor2.local_opinion
         
+        temp_pairwise_interaction_log['b1_local_op'].append(round(X_i, 2))
+        temp_pairwise_interaction_log['b2_local_op'].append(round(X_j, 2))
+        
+        if self.muddle_opinions == 'yes':
+            X_j = self.ambiguous_opinion(X_j)
+            temp_pairwise_interaction_log['b2_expressed_op'].append(round(X_j, 2))
+        
+        
         opinion_gap = abs(X_i - X_j)
         
-        temp_pairwise_interaction_log['b1_local_op'].append(X_i)
-        temp_pairwise_interaction_log['b2_local_op'].append(X_j)
-        temp_pairwise_interaction_log['local_op_gap'].append(opinion_gap)
+
+        temp_pairwise_interaction_log['local_op_gap'].append(round(opinion_gap, 2))
 
         # if difference in opinion is within deviation threshold
         if abs(X_i - X_j) <= delta:
@@ -170,7 +181,7 @@ class LocalConversation:
  
             w = fuzzy_bc.fuzzification(mfx, opinion_gap) # defuzzified agent interaction weight
             
-            temp_pairwise_interaction_log['weight'].append(w)
+            temp_pairwise_interaction_log['weight'].append(round(w, 2))
             
             #print('defuzzified agent interaction weight: ', w)
             
@@ -178,34 +189,58 @@ class LocalConversation:
             if self.bettor1.influenced_by_opinions == 1:
                 i_update = (1 - w) * X_i + w * X_j # opinion is strength of weight times other agents opinion
                 self.bettor1.set_opinion(i_update)
-                temp_pairwise_interaction_log['b1_new_local_op'].append(i_update)
+                temp_pairwise_interaction_log['b1_new_local_op'].append(round(i_update, 2))
+                temp_pairwise_interaction_log['b1_op_change'].append(round(i_update - X_i, 2))
                 
             if self.bettor2.influenced_by_opinions == 1:
                 j_update = (1 - w) * X_j + w * X_i
                 self.bettor2.set_opinion(j_update)
-                temp_pairwise_interaction_log['b2_new_local_op'].append(j_update)
+                temp_pairwise_interaction_log['b2_new_local_op'].append(round(j_update, 2))
             elif self.bettor2.influenced_by_opinions == 0:
-                temp_pairwise_interaction_log['b2_new_local_op'].append(X_j)
+                temp_pairwise_interaction_log['b2_new_local_op'].append(round(X_j, 2))
             
                 
         elif abs(X_i - X_j) > delta:
             print('Opinion gap too far apart - no interaction occurs')
 
             temp_pairwise_interaction_log['weight'].append(0) # weight is essentially 0 if no update occurs
-            temp_pairwise_interaction_log['b1_new_local_op'].append(X_i)
-            temp_pairwise_interaction_log['b2_new_local_op'].append(X_j)
+            temp_pairwise_interaction_log['b1_new_local_op'].append(round(X_i, 2))
+            temp_pairwise_interaction_log['b1_op_change'].append(0)
+            temp_pairwise_interaction_log['b2_new_local_op'].append(round(X_j, 2))
         
         # append temporary log dict to actual interaction log dict
         # necessary to do this way as conversations vary in length so done this way
         # to correctly keep each row of data together
         for key, value in temp_pairwise_interaction_log.items():
             self.interaction_log[key].append(value[0])
+            
+            
+        
+    def ambiguous_opinion(self, exact_opinion):
+        
+        # strongest opinions either poisitive or negative have least ambiguity 
+        if 0 <= exact_opinion <= 0.2:
+            expressed_opinion = round(max(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 0), 2)
+            
+        elif 0.8 <= exact_opinion <= 1:
+            expressed_opinion = round(min(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 1), 2)
+        
+        # reasonably strong opinions have slightly more ambiguity
+        elif (0.2 < exact_opinion <= 0.4) or (0.6 <= exact_opinion < 0.8):
+            expressed_opinion = round(random.uniform(exact_opinion-0.1, exact_opinion+0.1), 2)
+            
+        # neutral opinions have greatest ambiguity
+        elif 0.4 < exact_opinion < 0.6:
+            expressed_opinion = round(random.uniform(exact_opinion-0.15, exact_opinion+0.15), 2)
+            
+        return expressed_opinion
+        
 
         
     
 class GroupConversation:
 
-    def __init__(self, id, bettor_initiator, group_bettors, start_time, model, interaction_log):
+    def __init__(self, id, bettor_initiator, group_bettors, start_time, model, interaction_log, muddle_opinions):
         
         self.id = id            
         
@@ -226,6 +261,8 @@ class GroupConversation:
         self.bettor_initiator.in_conversation = 1
         
         self.interaction_log = interaction_log
+        
+        self.muddle_opinions = muddle_opinions
         
         # bettors degree of connection will have changed when fuzzy step called so set here
         # to be able to append to interaction log correctly
@@ -258,6 +295,7 @@ class GroupConversation:
                                            'bettors_ids': [],
                                            'degs_of_connection': [],
                                            'bettors_local_ops': [],
+                                           'bettors_expressed_ops': [],
                                            #'local_op_gap': [],
                                            'weights': [],
                                            'ops_x_weights': [],
@@ -266,8 +304,8 @@ class GroupConversation:
        
         temp_group_interaction_log['type'].append(self.model)         
         temp_group_interaction_log['conv_id'].append(self.id)         
-        temp_group_interaction_log['time'].append(self.start_time)
-        temp_group_interaction_log['length'].append(self.conversation_length)        
+        temp_group_interaction_log['time'].append(round(self.start_time, 2))
+        temp_group_interaction_log['length'].append(round(self.conversation_length, 2))        
         temp_group_interaction_log['bettor1'].append(str(self.bettor_initiator).lstrip("<betting_agents.Agent_Opinionated_").split().pop(0))
         temp_group_interaction_log['bettor1_id'].append(self.bettor_initiator.shuffled_id)    
         
@@ -292,15 +330,22 @@ class GroupConversation:
         #print('group conv id: ', self.id, 'bettor_initiator local op ', self.bettor_initiator.local_opinion)
         #print('group conv id: ', self.id, 'bettor_initiator local op ', X_i)
         
-        temp_group_interaction_log['b1_local_op'].append(X_i)
+        temp_group_interaction_log['b1_local_op'].append(round(X_i, 2))
         
         
-        self.group_local_opinions = [bettor.local_opinion for bettor in self.other_bettors]
+        group_local_opinions = [round(bettor.local_opinion, 2) for bettor in self.other_bettors]
         #print('group conv id: ', self.id, 'num other bettors: ', len(self.other_bettors))
         #print('group conv id: ', self.id, 'group local opinions: ', self.group_local_opinions)
-        temp_group_interaction_log['bettors_local_ops'].append(self.group_local_opinions)
+        temp_group_interaction_log['bettors_local_ops'].append(group_local_opinions)
+        
+        if self.muddle_opinions == 'yes':
+            
+            group_muddled_local_opinions = [round(self.ambiguous_opinion(bettor.local_opinion), 2) for bettor in self.other_bettors]
+            
+            temp_group_interaction_log['bettors_expressed_ops'].append(group_muddled_local_opinions)
+        
 
-        self.dfz_weights = []
+        dfz_weights = []
         
         #group_avg_opinion = np.mean(group_local_opinions)
 
@@ -314,26 +359,29 @@ class GroupConversation:
  
             w = fuzzy_bc.fuzzification(mfx, opinion_gap) # defuzzified agent interaction weight
             
-            self.dfz_weights.append(w)
+            dfz_weights.append(w)
             
         #for bettor in self.group_bettors:
             #if bettor.influenced_by_opinions == 1: # accounts for if there is more than one RP(d) bettor in conv
             
-        self.X_i_updates = [self.group_local_opinions[i]*self.dfz_weights[i] for i in range(len(self.other_bettors))]
+        ops_x_weights = [group_local_opinions[i]*dfz_weights[i] for i in range(len(self.other_bettors))]
         
         
         #self.num_bettors = len(self.other_bettors)
         
         # self weight to be placed on new opinion calculation - opinion gap of zero
-        self_weight = fuzzy_bc.fuzzification(mfx, 0) 
-        self.dfz_weights.append(self_weight)
-        temp_group_interaction_log['weights'].append(self.dfz_weights)
+        #self_weight = fuzzy_bc.fuzzification(mfx, 0) 
+        
+        # dont fuzzify opinion gap 0 for self weight, should just be 1
+        self_weight = 1
+        dfz_weights.append(self_weight)
+        temp_group_interaction_log['weights'].append(dfz_weights)
         
         self_update = X_i*self_weight
-        self.X_i_updates.append(self_update)
-        temp_group_interaction_log['ops_x_weights'].append(self.X_i_updates)
+        ops_x_weights.append(self_update)
+        temp_group_interaction_log['ops_x_weights'].append(ops_x_weights)
         
-        self.new_xi_opinion = sum(self.X_i_updates)/sum(self.dfz_weights)
+        new_xi_opinion = sum(ops_x_weights)/sum(dfz_weights)
         
         
         #print('priveleged bettor local opinion: ', X_i)
@@ -352,16 +400,16 @@ class GroupConversation:
         
         #print('group conv id: ', self.id, 'b1 new opinion: ', self.new_xi_opinion)
 
-        temp_group_interaction_log['b1_new_local_op'].append(self.new_xi_opinion)
+        temp_group_interaction_log['b1_new_local_op'].append(round(new_xi_opinion, 2))
         
-        temp_group_interaction_log['b1_op_change'].append(self.new_xi_opinion - X_i)
+        temp_group_interaction_log['b1_op_change'].append(round(new_xi_opinion - X_i, 2))
         
         # HAVE NEW OPINION TAKE INTO ACCOUNT OLD OPINION
         #new_opinion = 
         
         #print('new X_i opinion: ', new_xi_opinion)
         
-        self.bettor_initiator.set_opinion(self.new_xi_opinion)
+        self.bettor_initiator.set_opinion(new_xi_opinion)
         
         
         #print('temp log: ', temp_group_interaction_log)
@@ -374,11 +422,32 @@ class GroupConversation:
         for key, value in temp_group_interaction_log.items():
             self.interaction_log[key].append(value[0])
             
+            
+    def ambiguous_opinion(self, exact_opinion):
+        
+        # strongest opinions either poisitive or negative have least ambiguity 
+        if 0 <= exact_opinion <= 0.2:
+            expressed_opinion = round(max(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 0), 2)
+            
+        elif 0.8 <= exact_opinion <= 1:
+            expressed_opinion = round(min(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 1), 2)
+        
+        # reasonably strong opinions have slightly more ambiguity
+        elif (0.2 < exact_opinion <= 0.4) or (0.6 <= exact_opinion < 0.8):
+            expressed_opinion = round(random.uniform(exact_opinion-0.1, exact_opinion+0.1), 2)
+            
+        # neutral opinions have greatest ambiguity
+        elif 0.4 < exact_opinion < 0.6:
+            expressed_opinion = round(random.uniform(exact_opinion-0.15, exact_opinion+0.15), 2)
+            
+        return expressed_opinion
+            
        
 
 class OpinionDynamicsPlatform:
     def __init__(self, bettors, model, network_structure, 
-                 interaction_type, interaction_selection, interaction_logs):
+                 interaction_type, interaction_selection, interaction_logs,
+                 muddle_opinions):
         self.bettors = bettors
         
         self.model = model
@@ -394,6 +463,8 @@ class OpinionDynamicsPlatform:
             self.interaction_log = interaction_logs['group']
             
         self.interaction_selection = interaction_selection
+        
+        self.muddle_opinions = muddle_opinions
 
         self.all_influenced_by_opinions = [bettor for bettor in bettors if bettor.influenced_by_opinions == 1]
         self.all_opinionated = [bettor for bettor in bettors if bettor.opinionated == 1]
@@ -473,7 +544,8 @@ class OpinionDynamicsPlatform:
                             
                     id = self.number_of_conversations
         
-                    Conversation = LocalConversation(id, bettor1, bettor2, time, self.model, self.interaction_log)
+                    Conversation = LocalConversation(id, bettor1, bettor2, time, self.model, self.interaction_log,
+                                                     self.muddle_opinions)
         
                     self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
                                                              bettor.in_conversation == 0]
@@ -496,13 +568,13 @@ class OpinionDynamicsPlatform:
                     
                     bettor = self.available_influenced_by_opinions[0]
         
-                    bettor1 = bettor
+                    self.bettor1 = bettor
                     bettor2 = bettor
                     
-                    bettor1_id = self.all_opinionated.index(bettor1)
+                    self.bettor1_id = self.all_opinionated.index(self.bettor1)
                     
                     # retrieve neighbour ids based on created network, implying id in list is its node id in network
-                    bettor_neighbours_ids = self.network.edge(bettor1_id)
+                    bettor_neighbours_ids = self.network.edge(self.bettor1_id)
 
                     bettor1_neighbours = []
                     
@@ -514,7 +586,7 @@ class OpinionDynamicsPlatform:
                     self.available_neighbours = [bettor for bettor in bettor1_neighbours if
                                                  bettor.in_conversation == 0]
                     
-                    while bettor1 == bettor2:
+                    while self.bettor1 == bettor2:
                         num_bettors_to_select = 1
                         #if len(self.available_influenced_by_opinions) == 0 or len(self.available_neighbours) < 1:
                         #    return
@@ -542,7 +614,8 @@ class OpinionDynamicsPlatform:
                     #print(bettor2)
                     #print('bettor2 in conversation pre: ', bettor2.in_conversation)        
 
-                    Conversation = LocalConversation(id, bettor1, bettor2, time, self.model, self.interaction_log)
+                    Conversation = LocalConversation(id, self.bettor1, bettor2, time, self.model, self.interaction_log,
+                                                     self.muddle_opinions)
                     
                     #print(bettor1)
                     #print('bettor1 in conversation post: ', bettor1.in_conversation)
@@ -595,7 +668,8 @@ class OpinionDynamicsPlatform:
                             
                     id = self.number_of_conversations
                     
-                    Conversation = GroupConversation(id, bettor1, conv_group, time, self.model, self.interaction_log)                
+                    Conversation = GroupConversation(id, bettor1, conv_group, time, self.model, self.interaction_log,
+                                                     self.muddle_opinions)                
         
                     self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
                                                              bettor.in_conversation == 0]
@@ -658,7 +732,8 @@ class OpinionDynamicsPlatform:
 
                     id = self.number_of_conversations
                     
-                    Conversation = GroupConversation(id, self.bettor1, conv_group, time, self.model, self.interaction_log)
+                    Conversation = GroupConversation(id, self.bettor1, conv_group, time, self.model, 
+                                                     self.interaction_log, self.muddle_opinions)
         
                     self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
                                                              bettor.in_conversation == 0]

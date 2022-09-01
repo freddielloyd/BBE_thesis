@@ -77,9 +77,11 @@ class Session:
                                          'bettor2_id': [],
                                          'deg_of_connection': [],
                                          'b2_local_op': [],
+                                         'b2_expressed_op': [],
                                          'local_op_gap': [],
                                          'weight': [],
                                          'b1_new_local_op': [],
+                                         'b1_op_change': [],
                                          'b2_new_local_op': []}     
         
         self.group_interaction_log = {'type': [], 
@@ -94,6 +96,7 @@ class Session:
                                       'bettors_ids': [],
                                       'degs_of_connection': [],
                                       'bettors_local_ops': [],
+                                      'bettors_expressed_ops': [],
                                       #'local_op_gap': [],
                                       'weights': [],
                                       'ops_x_weights': [],
@@ -325,7 +328,8 @@ class Session:
                                                                NETWORK_NAME, 
                                                                INTERACTION_TYPE,
                                                                INTERACTION_SELECTION,
-                                                               self.interaction_logs)
+                                                               self.interaction_logs,
+                                                               MUDDLE_OPINIONS)
         
         # Create threads for all betting agents that wait until event session
         # has started
