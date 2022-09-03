@@ -28,7 +28,8 @@ def raceEventPlot(filename, seed):
     ys = []
     for i in range(1, NUM_OF_COMPETITORS+1):
         ys.append(i)
-    dataframe.plot(x = "Time", xlabel="Time (s)", y = ys, ylabel="Distance (m)", kind="line", title = 'seed: {}'.format(seed))
+    #dataframe.plot(x = "Time", xlabel="Time (s)", y = ys, ylabel="Distance (m)", kind="line", title = 'seed: {}'.format(seed))
+    dataframe.plot(x = "Time", xlabel="Time (s)", y = ys, ylabel="Distance (m)", kind="line")
     plt.savefig('data/figures/race_event.png')
 
     plt.show()
@@ -76,8 +77,9 @@ def residualDistancePlot(filename, seed):
     for i in range(1, NUM_OF_COMPETITORS+1):
         ys.append(i)
     
-    residual_df.plot(x = "Time", xlabel="Time (s)", y = ys, ylabel="Residual Distance", kind="line", title = 'seed: {}'.format(seed))
-
+    #residual_df.plot(x = "Time", xlabel="Time (s)", y = ys, ylabel="Residual Distance", kind="line", title = 'seed: {}'.format(seed))
+    residual_df.plot(x = "Time", xlabel="Time (s)", y = ys, ylabel="Residual Distance", kind="line")
+    
     plt.savefig('data/figures/race_event_residual_distance.png')
     plt.show()
 

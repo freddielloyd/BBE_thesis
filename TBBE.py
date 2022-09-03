@@ -381,13 +381,14 @@ class Session:
         for id, exchange in self.exchanges.items():
             thread = threading.Thread(target = self.exchangeLogic, args = [exchange, self.exchangeOrderQs[id]])
             self.exchangeThreads.append(thread)
-
+        
         for thread in self.exchangeThreads:
             thread.start()
 
         # Start betting agent threads
         for thread in self.bettingAgentThreads:
             thread.start()
+
 
         # Initialise event
         self.event.set()
@@ -410,9 +411,10 @@ class Session:
         # End event
         self.event.clear()
 
-        # Close threads
-        for thread in self.exchangeThreads: thread.join()
+        # Close threads 
+        for thread in self.exchangeThreads: thread.join() # THIS IS the problem
         for thread in self.bettingAgentThreads: thread.join()
+        
 
         print("Simulation complete")
 
@@ -482,7 +484,6 @@ class BBE(Session):
         # Simulation attributes
         currentSimulation = 0
         ####################
-        
 
         # set things up
         # have while loop for running multiple races
@@ -490,72 +491,84 @@ class BBE(Session):
         # run simulation and matching engine
         while currentSimulation < NUM_OF_SIMS:
             
+            sim_start_time = time.time()
+            
             #random.seed(1) # if set here race and transactions identical on every sim
             #np.random.seed(26) # no np randoms used
 
             
-            simulationId = "Simulation: " + str(currentSimulation)
+            simulationId = str(currentSimulation)
+            print("Simulation: " + simulationId)
             # Start up thread for race on which all other threads will wait
+            
+            random.seed(self.seed)  #set here before Session initialised for same race
             self.session = Session()
-            random.seed()
+            
             if argFunc:
                 argFunc(self.session)
             self.session.eventSession(currentSimulation)
             
             plotting_main(self.seed) # produce desired plots from plotting.py on each sim
 
+            #currentSimulation = currentSimulation + 1
+
+            # Opinion Dynamics results:
+    
+            opinion_hist_df = pandas.DataFrame.from_dict(self.session.opinion_hist)
+            opinion_hist_df.to_csv('data/opinions/opinions{}.csv'.format(currentSimulation), index=False)
+    
+            opinion_hist_df_l = pandas.DataFrame.from_dict(self.session.opinion_hist_l)
+            opinion_hist_df_l.to_csv('data/opinions/local_opinions{}.csv'.format(currentSimulation), index=False)
+    
+            opinion_hist_df_g = pandas.DataFrame.from_dict(self.session.opinion_hist_g)
+            opinion_hist_df_g.to_csv('data/opinions/global_opinions{}.csv'.format(currentSimulation), index=False)
+    
+            opinion_hist_df_e = pandas.DataFrame.from_dict(self.session.opinion_hist_e)
+            opinion_hist_df_e.to_csv('data/opinions/event_opinions{}.csv'.format(currentSimulation), index=False)
+    
+            competitor_odds_df = pandas.DataFrame.from_dict(self.session.competitor_odds)
+            competitor_odds_df.to_csv('data/competitor_odds{}.csv'.format(currentSimulation), index=False)
+    
+            competitor_distances_df = pandas.DataFrame.from_dict(self.session.competitor_distances)
+            competitor_distances_df.to_csv('data/competitor_distances{}.csv'.format(currentSimulation), index=False)
+    
+            opinion_hist_s_df = pandas.DataFrame.from_dict(self.session.opinion_hist_s)
+            opinion_hist_s_df.to_csv('data/opinions/opinion_hist_s{}.csv'.format(currentSimulation), index=False)
+            
+            
+            if INTERACTION_TYPE == 'pairwise':
+                interaction_log_df = pandas.DataFrame.from_dict(self.session.interaction_logs['pairwise'], orient='index')
+                interaction_log_df = interaction_log_df.transpose() # essential with orient = index or else different lengths
+                interaction_log_df.to_csv('data/pairwise_interaction_log{}.csv'.format(currentSimulation), index=False, header=True)
+                
+                
+            elif INTERACTION_TYPE == 'group':
+                interaction_log_df = pandas.DataFrame.from_dict(self.session.interaction_logs['group'], orient='index')
+                interaction_log_df = interaction_log_df.transpose()
+                interaction_log_df.to_csv('data/group_interaction_log{}.csv'.format(currentSimulation), index=False, header=True)
+                
+            
+            sim_finish_time = time.time()
+            
+            print('Sim time taken: ', sim_finish_time - sim_start_time)
+            
+            print()
+            
             currentSimulation = currentSimulation + 1
-
-        # Opinion Dynamics results:
-
-        opinion_hist_df = pandas.DataFrame.from_dict(self.session.opinion_hist)
-        opinion_hist_df.to_csv('data/opinions/opinions.csv', index=False)
-
-        opinion_hist_df_l = pandas.DataFrame.from_dict(self.session.opinion_hist_l)
-        opinion_hist_df_l.to_csv('data/opinions/local_opinions.csv', index=False)
-
-        opinion_hist_df_g = pandas.DataFrame.from_dict(self.session.opinion_hist_g)
-        opinion_hist_df_g.to_csv('data/opinions/global_opinions.csv', index=False)
-
-        opinion_hist_df_e = pandas.DataFrame.from_dict(self.session.opinion_hist_e)
-        opinion_hist_df_e.to_csv('data/opinions/event_opinions.csv', index=False)
-
-        competitor_odds_df = pandas.DataFrame.from_dict(self.session.competitor_odds)
-        competitor_odds_df.to_csv('data/competitor_odds.csv', index=False)
-
-        competitor_distances_df = pandas.DataFrame.from_dict(self.session.competitor_distances)
-        competitor_distances_df.to_csv('data/competitor_distances.csv', index=False)
-
-        opinion_hist_s_df = pandas.DataFrame.from_dict(self.session.opinion_hist_s)
-        opinion_hist_s_df.to_csv('data/opinions/opinion_hist_s.csv', index=False)
-        
-        
-        if INTERACTION_TYPE == 'pairwise':
-            interaction_log_df = pandas.DataFrame.from_dict(self.session.interaction_logs['pairwise'], orient='index')
-            interaction_log_df = interaction_log_df.transpose() # essential with orient = index or else different lengths
-            interaction_log_df.to_csv('data/pairwise_interaction_log.csv', index=False, header=True)
-            
-            
-        elif INTERACTION_TYPE == 'group':
-            interaction_log_df = pandas.DataFrame.from_dict(self.session.interaction_logs['group'], orient='index')
-            interaction_log_df = interaction_log_df.transpose()
-            interaction_log_df.to_csv('data/group_interaction_log.csv', index=False, header=True)
-            
-            
-            
+                
             
 
 if __name__ == "__main__":
 
     start = time.time()
-    random.seed(51) # only reproducible for first sim if used here
+    #random.seed(51) # only reproducible for first sim if used here
     #np.random.seed(100) # no numpy randoms used
     print('Running')
     bbe = BBE(51) # seed passed to BBE so can be used in title of plots for race identification
     print('Running')
     bbe.runSession()
     end = time.time()
-    print('Time taken: ', end - start)
+    print('Total Time taken: ', end - start)
     
     
 

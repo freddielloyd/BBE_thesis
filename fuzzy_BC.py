@@ -18,15 +18,13 @@ class fuzzy_BC:
         x_ubound = 1.01
         x_interval = 0.01
         self.x = np.arange(x_lbound, x_ubound, x_interval) 
-        
-    
-                
+              
         # Generate universe variables
         self.x_opinion_gap = np.arange(x_lbound, x_ubound, x_interval)
         
         self.x_weight = np.arange(x_lbound, x_ubound, x_interval)
         
-    def fuzzification(self, mfx, opinion_gap):
+    def fuzzification(self, mfx, opinion_gap, weight_segmentation):
         
         # Triangular membership function output - values are bottom left, top and, bottom right of triangle respectively
         if mfx == 'triangular':
@@ -39,8 +37,8 @@ class fuzzy_BC:
             
             # Generate triangular membership functions 
             
-            # test membership functions
 # =============================================================================
+#             # test membership functions
 #             # Opinion Gap Membership
 #             op_vsm = fuzz.trimf(self.x_opinion_gap, [0, 0, 0.1]) # very small
 #             op_qsm = fuzz.trimf(self.x_opinion_gap, [0, 0.1, 0.2]) # quite small
@@ -68,13 +66,42 @@ class fuzzy_BC:
             op_ql = fuzz.trimf(self.x_opinion_gap, [0.21, 0.276, 0.342]) # quite large
             op_vl = fuzz.trimf(self.x_opinion_gap, [0.276, 1, 1]) # very large
             
-            # Agent interaction update weight membership
-            w_vstr = fuzz.trimf(self.x_weight, [0.83, 1, 1]) # very strong
-            w_qstr = fuzz.trimf(self.x_weight, [0.67, 0.83, 0.83]) # quite strong
-            w_str = fuzz.trimf(self.x_weight, [0.55, 0.7, 0.7]) # strong
-            w_w = fuzz.trimf(self.x_weight, [0.33, 0.33, 0.58]) # weak
-            w_qw = fuzz.trimf(self.x_weight, [0, 0.03, 0.35]) # quite weak
-            w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
+            if weight_segmentation =='a':
+                # Agent interaction update weight membership
+                w_vstr = fuzz.trimf(self.x_weight, [0.83, 1, 1]) # very strong
+                w_qstr = fuzz.trimf(self.x_weight, [0.67, 0.83, 0.83]) # quite strong
+                w_str = fuzz.trimf(self.x_weight, [0.55, 0.7, 0.7]) # strong
+                w_w = fuzz.trimf(self.x_weight, [0.33, 0.33, 0.58]) # weak
+                w_qw = fuzz.trimf(self.x_weight, [0, 0.03, 0.35]) # quite weak
+                w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
+                        
+            elif weight_segmentation == 'b':
+                # Agent interaction update weight membership
+                w_vstr = fuzz.trimf(self.x_weight, [0.78, 1, 1]) # very strong
+                w_qstr = fuzz.trimf(self.x_weight, [0.58, 0.8, 0.8]) # quite strong
+                w_str = fuzz.trimf(self.x_weight, [0.28, 0.6, 0.6]) # strong
+                w_w = fuzz.trimf(self.x_weight, [0.18, 0.18, 0.38]) # weak
+                w_qw = fuzz.trimf(self.x_weight, [0, 0.03, 0.2]) # quite weak
+                w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
+            
+            elif weight_segmentation == 'c':
+                # Agent interaction update weight membership
+                w_vstr = fuzz.trimf(self.x_weight, [0.16, 1, 1]) # very strong
+                w_qstr = fuzz.trimf(self.x_weight, [0.12, 0.18, 0.18]) # quite strong
+                w_str = fuzz.trimf(self.x_weight, [0.08, 0.14, 0.14]) # strong
+                w_w = fuzz.trimf(self.x_weight, [0.04, 0.04, 0.1]) # weak
+                w_qw = fuzz.trimf(self.x_weight, [0, 0.02, 0.06]) # quite weak
+                w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
+                        
+            elif weight_segmentation == 'd':
+                # Agent interaction update weight membership
+                w_vstr = fuzz.trimf(self.x_weight, [0.04, 1, 1]) # very strong
+                w_qstr = fuzz.trimf(self.x_weight, [0.03, 0.04, 0.04]) # quite strong
+                w_str = fuzz.trimf(self.x_weight, [0.02, 0.03, 0.03]) # strong
+                w_w = fuzz.trimf(self.x_weight, [0, 0.01, 0.02]) # weak
+                w_qw = fuzz.trimf(self.x_weight, [0, 0.01, 0.01]) # quite weak
+                w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
+                
             
             
             # We need the activation of our fuzzy membership functions at a value for opinion gap.
@@ -101,48 +128,15 @@ class fuzzy_BC:
             w_activation_6 = np.fmin(op_level_vl, w_vw)         
             
 
-            # array of zeros same length as input array
-            weight0 = np.zeros_like(self.x_weight)
-            
-
             # Aggregate all six output membership functions together by taking element wise maximums
-            aggregated = np.fmax(w_activation_1,
+            fuzzy_set = np.fmax(w_activation_1,
                                  np.fmax(w_activation_2,
                                          np.fmax(w_activation_3,
                                                  np.fmax(w_activation_4,
                                                          np.fmax(w_activation_5, w_activation_6)))))
             
-    
-            # Calculate defuzzified result
-            crisp_weight = fuzz.defuzz(self.x_weight, aggregated, 'centroid')
-            weight_activation = fuzz.interp_membership(self.x_weight, aggregated, crisp_weight)  # for plot
-    
-            
-# =============================================================================
-#             # Visualize every centroid defuzzification process - weight on x axis, membership on y axis
-#             fig, ax0 = plt.subplots(figsize=(8, 4))
-#     
-#             ax0.plot(self.x_weight, w_vstr, 'r', linewidth=0.5, linestyle='--', )
-#             ax0.plot(self.x_weight, w_qstr, 'g', linewidth=0.5, linestyle='--')
-#             ax0.plot(self.x_weight, w_str, 'b', linewidth=0.5, linestyle='--')
-#             ax0.plot(self.x_weight, w_w, 'c', linewidth=0.5, linestyle='--', )
-#             ax0.plot(self.x_weight, w_qw, 'm', linewidth=0.5, linestyle='--')
-#             ax0.plot(self.x_weight, w_vw, 'y', linewidth=0.5, linestyle='--')
-#             ax0.fill_between(self.x_weight, weight0, aggregated, facecolor='Red', alpha=0.7)
-#             ax0.plot([crisp_weight, crisp_weight], [0, weight_activation], 'k', linewidth=1.5, alpha=0.9)
-#             ax0.set_title('Aggregated membership and result (line)')
-#     
-#             # Turn off top/right axes
-#             for ax in (ax0,):
-#                 ax.spines['top'].set_visible(False)
-#                 ax.spines['right'].set_visible(False)
-#                 ax.get_xaxis().tick_bottom()
-#                 ax.get_yaxis().tick_left()
-#     
-#             plt.tight_layout()
-# =============================================================================
-    
-            return crisp_weight
+
+            return fuzzy_set
 
 
         # Trapezoidal membership function output - values are four corners of trapezium
@@ -207,60 +201,48 @@ class fuzzy_BC:
 
 
             
+    def defuzzification(self, fuzzy_set, method):
+        
+        # Calculate defuzzified result
+        if method == 'centroid':
+            crisp_weight = fuzz.defuzz(self.x_weight, fuzzy_set, 'centroid')
+        elif method == 'bisector':
+            crisp_weight = fuzz.defuzz(self.x_weight, fuzzy_set, 'bisector')
+        elif method == 'mean_of_max':
+            crisp_weight = fuzz.defuzz(self.x_weight, fuzzy_set, 'mom')
+            
+        return crisp_weight
+            
+        
+        ## Visualize every centroid defuzzification process - weight on x axis, membership on y axis
+        #
+        #array of zeros same length as input array
+        #weight0 = np.zeros_like(self.x_weight)
+        #           
+        #weight_activation = fuzz.interp_membership(self.x_weight, aggregated, crisp_weight)  # for plot
+        #
+        #fig, ax0 = plt.subplots(figsize=(8, 4))
+        #
+        #ax0.plot(self.x_weight, w_vstr, 'r', linewidth=0.5, linestyle='--', )
+        #ax0.plot(self.x_weight, w_qstr, 'g', linewidth=0.5, linestyle='--')
+        #ax0.plot(self.x_weight, w_str, 'b', linewidth=0.5, linestyle='--')
+        #ax0.plot(self.x_weight, w_w, 'c', linewidth=0.5, linestyle='--', )
+        #ax0.plot(self.x_weight, w_qw, 'm', linewidth=0.5, linestyle='--')
+        #ax0.plot(self.x_weight, w_vw, 'y', linewidth=0.5, linestyle='--')
+        #ax0.fill_between(self.x_weight, weight0, aggregated, facecolor='Red', alpha=0.7)
+        #ax0.plot([crisp_weight, crisp_weight], [0, weight_activation], 'k', linewidth=1.5, alpha=0.9)
+        #ax0.set_title('Aggregated membership and result (line)')
+        #
+        # Turn off top/right axes
+        #for ax in (ax0,):
+        #    ax.spines['top'].set_visible(False)
+        #    ax.spines['right'].set_visible(False)
+        #    ax.get_xaxis().tick_bottom()
+        #    ax.get_yaxis().tick_left()
+        #
+        #plt.tight_layout()
 
-            
 
-                
-                
-    def defuzz_xvals(self, mfxs, method): # method = centroid, bisector, or mean of maximum
-        
-        defuzz_xvals = []
-        
-        for mfx in mfxs:
-  
-            if method == 'centroid':
-                defuzz_centroid = fuzz.defuzz(self.x, mfx, 'centroid')
-                defuzz_xvals.append(defuzz_centroid)
-                
-            elif method == 'bisector':
-                defuzz_bisector = fuzz.defuzz(self.x, mfx, 'bisector')
-                defuzz_xvals.append(defuzz_bisector)
-                
-            elif method == 'mean_of_max':
-                defuzz_mom = fuzz.defuzz(self.x, mfx, 'mom')
-                defuzz_xvals.append(defuzz_mom)
-     
-        return defuzz_xvals
-                
-    
-    def defuzz_yvals(self, mfxs, defuzz_xvals):
-        
-        
-# =============================================================================
-#         defuzz_yvals = []
-#         
-#         for mfx in mfxs:
-#             # y max is estimated interpolated y values based on x defuzz values, interpolated from x and mfx values
-#             ymax = [fuzz.interp_membership(self.x, mfx, i) for i in defuzz_xvals] # i is x to evaluate, x is x coords, x
-#             
-#             defuzz_yvals.append(ymax)
-#             
-#         return defuzz_yvals
-#     
-# =============================================================================
-    
-        defuzz_yvals = []
-        for i in range(len(defuzz_xvals)):
-            
-            #print(tri_mfxs[i], defuzz_xvals[i])
-            
-            ymax = fuzz.interp_membership(self.x, mfxs[i], defuzz_xvals[i])
-            
-            defuzz_yvals.append(ymax)
-            
-        return defuzz_yvals
-    
-    
     def plot_membership_fxs(self, mfxs, defuzz_xvals, defuzz_yvals):
         
         
@@ -279,40 +261,3 @@ class fuzzy_BC:
             
             plt.show()
         
-
-# =============================================================================
-# m = fuzzy_BC()
-# 
-# mfxs = m.fuzzification('triangular')
-# 
-# defuzz_x = m.defuzz_xvals(mfxs, 'centroid')
-# 
-# defuzz_y = m.defuzz_yvals(mfxs, defuzz_x)
-# 
-# m.plot_membership_fxs(mfxs, defuzz_x, defuzz_y)
-# =============================================================================
-
-
-
-
-
-
-
-# =============================================================================
-# x_lbound = 0
-# x_ubound = 1.05
-# x_interval = 0.1
-# x = np.arange(x_lbound, x_ubound, x_interval) 
-# 
-# #monotonically increasing with each stronger membership function
-# fuzz.defuzz(x, mfxs[0], 'centroid')
-# fuzz.defuzz(x, mfxs[1], 'centroid')
-# fuzz.defuzz(x, mfxs[2], 'centroid')
-# fuzz.defuzz(x, mfxs[3], 'centroid')
-# fuzz.defuzz(x, mfxs[4], 'centroid')
-# fuzz.defuzz(x, mfxs[5], 'centroid')
-# 
-# 
-# fuzz.defuzz(x, mfx, 'bisector')
-# fuzz.defuzz(x, mfx, 'mom') # mean of maximum
-# =============================================================================

@@ -125,7 +125,7 @@ class LocalConversation:
                     self.bettor2.set_uncertainty(u_j + (weight * RD_ij * (u_i - u_j)))
                                   
                     
-    # mfx is triangular or trapezoidal currently
+    # mfx is triangular currently
     def fuzzy_bounded_confidence_step(self, delta, mfx):
         
         temp_pairwise_interaction_log = {'type': [], 
@@ -165,48 +165,51 @@ class LocalConversation:
         if self.muddle_opinions == 'yes':
             X_j = self.ambiguous_opinion(X_j)
             temp_pairwise_interaction_log['b2_expressed_op'].append(round(X_j, 2))
-        
+        else:
+            temp_pairwise_interaction_log['b2_expressed_op'].append(round(X_j, 2))
         
         opinion_gap = abs(X_i - X_j)
         
 
         temp_pairwise_interaction_log['local_op_gap'].append(round(opinion_gap, 2))
 
-        # if difference in opinion is within deviation threshold
-        if abs(X_i - X_j) <= delta:
+        # if difference in opinion is within deviation threshold - NO NEED IN FUZZY
+        #if abs(X_i - X_j) <= delta:
             
-            opinion_gap = abs(X_i - X_j)
-                    
-            fuzzy_bc = fuzzy_BC()
+        opinion_gap = abs(X_i - X_j)
+                
+        fuzzy_bc = fuzzy_BC()
  
-            w = fuzzy_bc.fuzzification(mfx, opinion_gap) # defuzzified agent interaction weight
+        fuzzy_set = fuzzy_bc.fuzzification(mfx, opinion_gap, weight_segmentation = 'a')
+        
+        w = fuzzy_bc.defuzzification(fuzzy_set, method = 'centroid')
+        
+        temp_pairwise_interaction_log['weight'].append(round(w, 2))
+        
+        #print('defuzzified agent interaction weight: ', w)
+        
+        
+        if self.bettor1.influenced_by_opinions == 1:
+            i_update = (1 - w) * X_i + w * X_j # opinion is strength of weight times other agents opinion
+            self.bettor1.set_opinion(i_update)
+            temp_pairwise_interaction_log['b1_new_local_op'].append(round(i_update, 2))
+            temp_pairwise_interaction_log['b1_op_change'].append(round(i_update - X_i, 2))
             
-            temp_pairwise_interaction_log['weight'].append(round(w, 2))
-            
-            #print('defuzzified agent interaction weight: ', w)
-            
-            
-            if self.bettor1.influenced_by_opinions == 1:
-                i_update = (1 - w) * X_i + w * X_j # opinion is strength of weight times other agents opinion
-                self.bettor1.set_opinion(i_update)
-                temp_pairwise_interaction_log['b1_new_local_op'].append(round(i_update, 2))
-                temp_pairwise_interaction_log['b1_op_change'].append(round(i_update - X_i, 2))
-                
-            if self.bettor2.influenced_by_opinions == 1:
-                j_update = (1 - w) * X_j + w * X_i
-                self.bettor2.set_opinion(j_update)
-                temp_pairwise_interaction_log['b2_new_local_op'].append(round(j_update, 2))
-            elif self.bettor2.influenced_by_opinions == 0:
-                temp_pairwise_interaction_log['b2_new_local_op'].append(round(X_j, 2))
-            
-                
-        elif abs(X_i - X_j) > delta:
-            print('Opinion gap too far apart - no interaction occurs')
-
-            temp_pairwise_interaction_log['weight'].append(0) # weight is essentially 0 if no update occurs
-            temp_pairwise_interaction_log['b1_new_local_op'].append(round(X_i, 2))
-            temp_pairwise_interaction_log['b1_op_change'].append(0)
+        if self.bettor2.influenced_by_opinions == 1:
+            j_update = (1 - w) * X_j + w * X_i
+            self.bettor2.set_opinion(j_update)
+            temp_pairwise_interaction_log['b2_new_local_op'].append(round(j_update, 2))
+        elif self.bettor2.influenced_by_opinions == 0:
             temp_pairwise_interaction_log['b2_new_local_op'].append(round(X_j, 2))
+            
+                
+        #elif abs(X_i - X_j) > delta:
+        #    print('Opinion gap too far apart - no interaction occurs')
+        #    
+        #    temp_pairwise_interaction_log['weight'].append(0) # weight is essentially 0 if no update occurs
+        #    temp_pairwise_interaction_log['b1_new_local_op'].append(round(X_i, 2))
+        #    temp_pairwise_interaction_log['b1_op_change'].append(0)
+        #    temp_pairwise_interaction_log['b2_new_local_op'].append(round(X_j, 2))
         
         # append temporary log dict to actual interaction log dict
         # necessary to do this way as conversations vary in length so done this way
@@ -280,27 +283,27 @@ class GroupConversation:
         else:
             return print('Group OD model does not exist')
 
-    # mfx is triangular or trapezoidal currently, interaction pairwise or group
+    # mfx is triangular currently
     def group_fuzzy_bounded_confidence_step(self, delta, mfx):
                
         temp_group_interaction_log = {'type': [], 
-                                           'conv_id': [], 
-                                           'time': [], 
-                                           'length': [],
-                                           'bettor1': [], 
-                                           'bettor1_id': [],
-                                           'b1_local_op': [], 
-                                           'num_bettors': [],
-                                           'bettors': [],
-                                           'bettors_ids': [],
-                                           'degs_of_connection': [],
-                                           'bettors_local_ops': [],
-                                           'bettors_expressed_ops': [],
-                                           #'local_op_gap': [],
-                                           'weights': [],
-                                           'ops_x_weights': [],
-                                           'b1_new_local_op': [],
-                                           'b1_op_change': []}
+                                      'conv_id': [], 
+                                      'time': [], 
+                                      'length': [],
+                                      'bettor1': [], 
+                                      'bettor1_id': [],
+                                      'b1_local_op': [], 
+                                      'num_bettors': [],
+                                      'bettors': [],
+                                      'bettors_ids': [],
+                                      'degs_of_connection': [],
+                                      'bettors_local_ops': [],
+                                      'bettors_expressed_ops': [],
+                                      #'local_op_gap': [],
+                                      'weights': [],
+                                      'ops_x_weights': [],
+                                      'b1_new_local_op': [],
+                                      'b1_op_change': []}
        
         temp_group_interaction_log['type'].append(self.model)         
         temp_group_interaction_log['conv_id'].append(self.id)         
@@ -339,10 +342,10 @@ class GroupConversation:
         temp_group_interaction_log['bettors_local_ops'].append(group_local_opinions)
         
         if self.muddle_opinions == 'yes':
-            
-            group_muddled_local_opinions = [round(self.ambiguous_opinion(bettor.local_opinion), 2) for bettor in self.other_bettors]
-            
-            temp_group_interaction_log['bettors_expressed_ops'].append(group_muddled_local_opinions)
+            group_local_opinions = [round(self.ambiguous_opinion(bettor.local_opinion), 2) for bettor in self.other_bettors]
+            temp_group_interaction_log['bettors_expressed_ops'].append(group_local_opinions)    
+        else:
+            temp_group_interaction_log['bettors_expressed_ops'].append(group_local_opinions)
         
 
         dfz_weights = []
@@ -357,7 +360,9 @@ class GroupConversation:
             
             fuzzy_bc = fuzzy_BC()
  
-            w = fuzzy_bc.fuzzification(mfx, opinion_gap) # defuzzified agent interaction weight
+            fuzzy_set = fuzzy_bc.fuzzification(mfx, opinion_gap, weight_segmentation = 'a')
+            
+            w = fuzzy_bc.defuzzification(fuzzy_set, method = 'centroid')
             
             dfz_weights.append(w)
             
@@ -527,6 +532,10 @@ class OpinionDynamicsPlatform:
                 while len(self.available_influenced_by_opinions) > 0:
                     
                     bettor = self.available_influenced_by_opinions[0]
+                    
+                    # randomly sample from OI bettors not just take first to prevent bias
+                    #bettor = random.sample(self.available_influenced_by_opinions)
+
         
                     bettor1 = bettor
                     bettor2 = bettor
@@ -544,8 +553,8 @@ class OpinionDynamicsPlatform:
                             
                     id = self.number_of_conversations
         
-                    Conversation = LocalConversation(id, bettor1, bettor2, time, self.model, self.interaction_log,
-                                                     self.muddle_opinions)
+                    Conversation = LocalConversation(id, bettor1, bettor2, time, self.model,
+                                                     self.interaction_log, self.muddle_opinions)
         
                     self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
                                                              bettor.in_conversation == 0]
@@ -565,8 +574,12 @@ class OpinionDynamicsPlatform:
                 # while they were still in initial interaction, or vice versa in being selected for an interaction
                 # having already initiated an interaction in the initial for loop
                 while len(self.available_influenced_by_opinions) > 0:
-                    
+                                  
                     bettor = self.available_influenced_by_opinions[0]
+                    
+                    # randomly sample from OI bettors not just take first to prevent bias
+                    #bettor = random.sample(self.available_influenced_by_opinions)
+
         
                     self.bettor1 = bettor
                     bettor2 = bettor
@@ -614,8 +627,8 @@ class OpinionDynamicsPlatform:
                     #print(bettor2)
                     #print('bettor2 in conversation pre: ', bettor2.in_conversation)        
 
-                    Conversation = LocalConversation(id, self.bettor1, bettor2, time, self.model, self.interaction_log,
-                                                     self.muddle_opinions)
+                    Conversation = LocalConversation(id, self.bettor1, bettor2, time, self.model, 
+                                                     self.interaction_log, self.muddle_opinions)
                     
                     #print(bettor1)
                     #print('bettor1 in conversation post: ', bettor1.in_conversation)
@@ -644,8 +657,12 @@ class OpinionDynamicsPlatform:
                 # while they were still in initial interaction, or vice versa in being selected for an interaction
                 # having already initiated an interaction in the initial for loop
                 while len(self.available_influenced_by_opinions) > 0:
-                    
+                                       
                     bettor = self.available_influenced_by_opinions[0]
+                    
+                    # randomly sample from OI bettors not just take first to prevent bias
+                    #bettor = random.sample(self.available_influenced_by_opinions)
+
 
                     bettor1 = bettor
 
@@ -655,7 +672,6 @@ class OpinionDynamicsPlatform:
                     # if not at least one other available bettor, return
                     if len(self.available_opinionated) < 2:
                         return
-                    
                     else:
                         # number of other bettors to be in group conversation
                         num_bettors_to_select = random.randint(1, min(10, len(self.available_opinionated)))
@@ -663,13 +679,15 @@ class OpinionDynamicsPlatform:
                     
                     # if bettor1 in the group, resample until not in group
                     while bettor1 in conv_group:
+                        # redraw num bettors in case is max number of available bettors including bettor 1
+                        num_bettors_to_select = random.randint(1, min(10, len(self.available_opinionated)))
                         conv_group = random.sample(self.available_opinionated, num_bettors_to_select)
                         
                             
                     id = self.number_of_conversations
                     
-                    Conversation = GroupConversation(id, bettor1, conv_group, time, self.model, self.interaction_log,
-                                                     self.muddle_opinions)                
+                    Conversation = GroupConversation(id, bettor1, conv_group, time, self.model, 
+                                                     self.interaction_log, self.muddle_opinions)                
         
                     self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
                                                              bettor.in_conversation == 0]
@@ -692,6 +710,9 @@ class OpinionDynamicsPlatform:
                 while len(self.available_influenced_by_opinions) > 0:
                     
                     bettor = self.available_influenced_by_opinions[0]
+                    
+                    # randomly sample from OI bettors not just take first to prevent bias
+                    #bettor = random.sample(self.available_influenced_by_opinions)
 
                     self.bettor1 = bettor
                     
