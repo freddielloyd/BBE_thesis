@@ -36,12 +36,43 @@ class LocalConversation:
         
         self.muddle_opinions = muddle_opinions
         
-        # bettors degree of connection will have changed when fuzzy step called so set here
-        # to be able to append to interaction log correctly
+        # bettors degree of connection will have changed when change_local_opinions called 
+        # so set here to be able to append to interaction log correctly
         self.degree_of_connection = self.bettor2.degree_of_connection
         
         
+        self.temp_pairwise_interaction_log = {'type': [], 
+                                             'time': [], 
+                                             'length': [],
+                                             'bettor1': [], 
+                                             'bettor1_id': [],
+                                             'b1_local_op': [], 
+                                             'bettor2': [],
+                                             'bettor2_id': [],
+                                             'deg_of_connection': [],
+                                             'b2_local_op': [],
+                                             'b2_expressed_op': [],
+                                             'local_op_gap': [],
+                                             'weight': [],
+                                             'b1_new_local_op': [],
+                                             'b1_op_change': [],
+                                             'b2_new_local_op': []} 
+        
+        
     def change_local_opinions(self):
+                    
+        self.temp_pairwise_interaction_log['type'].append(self.model)                
+        self.temp_pairwise_interaction_log['time'].append(round(self.start_time, 2))
+        self.temp_pairwise_interaction_log['length'].append(round(self.conversation_length, 2))        
+        self.temp_pairwise_interaction_log['bettor1'].append(str(self.bettor1).lstrip("<betting_agents.Agent_Opinionated_").split().pop(0))
+        self.temp_pairwise_interaction_log['bettor1_id'].append(self.bettor1.shuffled_id)    
+        self.temp_pairwise_interaction_log['bettor2'].append(str(self.bettor2).lstrip("<betting_agents.Agent_Opinionated_").split().pop(0))
+        self.temp_pairwise_interaction_log['bettor2_id'].append(self.bettor2.shuffled_id)
+        self.temp_pairwise_interaction_log['deg_of_connection'].append(self.degree_of_connection) 
+        
+        self.temp_pairwise_interaction_log['b1_local_op'].append(round(self.bettor1.local_opinion, 2))
+        self.temp_pairwise_interaction_log['b2_local_op'].append(round(self.bettor2.local_opinion, 2))
+        
         if self.model == 'BC':
             self.bounded_confidence_step(mu, delta)
         elif self.model == 'RA':
@@ -63,39 +94,105 @@ class LocalConversation:
 
         X_i = self.bettor1.local_opinion
         X_j = self.bettor2.local_opinion
+        
+        self.temp_pairwise_interaction_log['b2_expressed_op'].append('N/A')
+        opinion_gap = abs(X_i - X_j)
+        self.temp_pairwise_interaction_log['local_op_gap'].append(round(opinion_gap, 2))
+        #self.temp_pairwise_interaction_log['weight'].append(w)
 
         # if difference in opinion is within deviation threshold
-        if abs(X_i - X_j) <= delta:
+        if opinion_gap <= delta:
+            self.temp_pairwise_interaction_log['weight'].append(w)
             if self.bettor1.influenced_by_opinions == 1:
                 i_update = w * X_i + (1 - w) * X_j
                 self.bettor1.set_opinion(i_update)
+                self.temp_pairwise_interaction_log['b1_new_local_op'].append(round(i_update, 2))
+                self.temp_pairwise_interaction_log['b1_op_change'].append(round(i_update - X_i, 2))
+                
             if self.bettor2.influenced_by_opinions == 1:
                 j_update = w * X_j + (1 - w) * X_i
                 self.bettor2.set_opinion(j_update)
+                self.temp_pairwise_interaction_log['b2_new_local_op'].append(round(j_update, 2))
+            elif self.bettor2.influenced_by_opinions == 0:
+                self.temp_pairwise_interaction_log['b2_new_local_op'].append(round(X_j, 2))
+                
+        
+        elif opinion_gap > delta:
+        #    print('Opinion gap too far apart - no interaction occurs')
+            self.temp_pairwise_interaction_log['weight'].append(0) # weight is essentially 0 if no update occurs
+            self.temp_pairwise_interaction_log['b1_new_local_op'].append(round(X_i, 2))
+            self.temp_pairwise_interaction_log['b1_op_change'].append(0)
+            self.temp_pairwise_interaction_log['b2_new_local_op'].append(round(X_j, 2))
+        
+        # append temporary log dict to actual interaction log dict
+        # necessary to do this way as conversations vary in length so done this way
+        # to correctly keep each row of data together
+        for key, value in self.temp_pairwise_interaction_log.items():
+            self.interaction_log[key].append(value[0])
             
 
 
     def relative_agreement_step(self, weight):
+        
+        # currently all agents initialised with uncertainty = 1, so h_ij = h_ji = 0 so no interaction happens?
+        # BUT SETS NEW UNCERTAINTY
 
         X_i = self.bettor1.local_opinion
         u_i = self.bettor1.uncertainty
 
         X_j = self.bettor2.local_opinion
         u_j = self.bettor2.uncertainty
+        
+        self.temp_pairwise_interaction_log['b2_expressed_op'].append('N/A')
+        opinion_gap = abs(X_i - X_j)  
+        self.temp_pairwise_interaction_log['local_op_gap'].append(round(opinion_gap, 2)) 
+        self.temp_pairwise_interaction_log['weight'].append(weight)
 
+        # symmetrical so these are the same?
         h_ij = min((X_i + u_i), (X_j + u_j)) - max((X_i - u_i), (X_j - u_j))
         h_ji = min((X_j + u_j), (X_i + u_i)) - max((X_j - u_j), (X_i - u_i))
+        
+        #print('xi local op: ', X_i)
+        #print('xj local op: ', X_j)
+        
+        #print('xi uncertainty: ', u_i)
+        #print('xj uncertainty: ', u_j)
+        
+        #print('hij: ', h_ij)
+        #print('hji: ', h_ji)
 
         if (h_ji > u_j):
             if self.bettor1.influenced_by_opinions == 1:
                 RA_ji = (h_ji / u_j) - 1
-                self.bettor1.set_opinion(X_i + (weight * RA_ji * (X_j - X_i)))
+                i_update = X_i + (weight * RA_ji * (X_j - X_i))
+                self.bettor1.set_opinion(i_update)
                 self.bettor1.set_uncertainty(u_i + (weight * RA_ji * (u_j - u_i)))
+                
+                self.temp_pairwise_interaction_log['b1_new_local_op'].append(round(i_update, 2))
+                self.temp_pairwise_interaction_log['b1_op_change'].append(round(i_update - X_i, 2))
+        elif (h_ji <= u_j):
+                self.temp_pairwise_interaction_log['b1_new_local_op'].append('N/A')
+                self.temp_pairwise_interaction_log['b1_op_change'].append(0)
+            
+                
         if (h_ij > u_i):
             if self.bettor2.influenced_by_opinions == 1:
                 RA_ij = (h_ij / u_i) - 1
-                self.bettor2.set_opinion(X_j + (weight * RA_ij * (X_i - X_j)))
+                j_update = X_j + (weight * RA_ij * (X_i - X_j))
+                self.bettor2.set_opinion(j_update)
                 self.bettor2.set_uncertainty(u_j + (weight * RA_ij * (u_i - u_j)))
+                
+                self.temp_pairwise_interaction_log['b2_new_local_op'].append(round(j_update, 2))
+            elif self.bettor2.influenced_by_opinions == 0:
+                self.temp_pairwise_interaction_log['b2_new_local_op'].append('N/A')
+        elif (h_ij <= u_i):
+                self.temp_pairwise_interaction_log['b2_new_local_op'].append('N/A')
+            
+        # append temporary log dict to actual interaction log dict
+        # necessary to do this way as conversations vary in length so done this way
+        # to correctly keep each row of data together
+        for key, value in self.temp_pairwise_interaction_log.items():
+            self.interaction_log[key].append(value[0])
 
     def relative_disagreement_step(self, weight, prob):
 
@@ -127,117 +224,91 @@ class LocalConversation:
                     
     # mfx is triangular currently
     def fuzzy_bounded_confidence_step(self, delta, mfx):
-        
-        temp_pairwise_interaction_log = {'type': [], 
-                                         'time': [], 
-                                         'length': [],
-                                         'bettor1': [], 
-                                         'bettor1_id': [],
-                                         'b1_local_op': [], 
-                                         'bettor2': [],
-                                         'bettor2_id': [],
-                                         'deg_of_connection': [],
-                                         'b2_local_op': [],
-                                         'b2_expressed_op': [],
-                                         'local_op_gap': [],
-                                         'weight': [],
-                                         'b1_new_local_op': [],
-                                         'b1_op_change': [],
-                                         'b2_new_local_op': []} 
-        
-        temp_pairwise_interaction_log['type'].append(self.model)                
-        temp_pairwise_interaction_log['time'].append(round(self.start_time, 2))
-        temp_pairwise_interaction_log['length'].append(round(self.conversation_length, 2))        
-        temp_pairwise_interaction_log['bettor1'].append(str(self.bettor1).lstrip("<betting_agents.Agent_Opinionated_").split().pop(0))
-        temp_pairwise_interaction_log['bettor1_id'].append(self.bettor1.shuffled_id)    
-        temp_pairwise_interaction_log['bettor2'].append(str(self.bettor2).lstrip("<betting_agents.Agent_Opinionated_").split().pop(0))
-        temp_pairwise_interaction_log['bettor2_id'].append(self.bettor2.shuffled_id)
-        temp_pairwise_interaction_log['deg_of_connection'].append(self.degree_of_connection)  
-        #print(self.bettor2.degree_of_connection)
-    
 
         X_i = self.bettor1.local_opinion
         X_j = self.bettor2.local_opinion
         
-        temp_pairwise_interaction_log['b1_local_op'].append(round(X_i, 2))
-        temp_pairwise_interaction_log['b2_local_op'].append(round(X_j, 2))
-        
         if self.muddle_opinions == 'yes':
-            X_j = self.ambiguous_opinion(X_j)
-            temp_pairwise_interaction_log['b2_expressed_op'].append(round(X_j, 2))
+            X_j = self.ambiguous_opinion(X_j, amount = 'medium')
+            self.temp_pairwise_interaction_log['b2_expressed_op'].append(round(X_j, 2))
         else:
-            temp_pairwise_interaction_log['b2_expressed_op'].append(round(X_j, 2))
+            self.temp_pairwise_interaction_log['b2_expressed_op'].append(round(X_j, 2))
         
         opinion_gap = abs(X_i - X_j)
-        
-
-        temp_pairwise_interaction_log['local_op_gap'].append(round(opinion_gap, 2))
-
-        # if difference in opinion is within deviation threshold - NO NEED IN FUZZY
-        #if abs(X_i - X_j) <= delta:
-            
-        opinion_gap = abs(X_i - X_j)
+        self.temp_pairwise_interaction_log['local_op_gap'].append(round(opinion_gap, 2))
                 
         fuzzy_bc = fuzzy_BC()
- 
-        fuzzy_set = fuzzy_bc.fuzzification(mfx, opinion_gap, weight_segmentation = 'a')
-        
+        fuzzy_set = fuzzy_bc.fuzzification(mfx, opinion_gap, weight_segmentation = 'd')
         w = fuzzy_bc.defuzzification(fuzzy_set, method = 'centroid')
-        
-        temp_pairwise_interaction_log['weight'].append(round(w, 2))
-        
-        #print('defuzzified agent interaction weight: ', w)
-        
+        self.temp_pairwise_interaction_log['weight'].append(round(w, 2))
         
         if self.bettor1.influenced_by_opinions == 1:
             i_update = (1 - w) * X_i + w * X_j # opinion is strength of weight times other agents opinion
             self.bettor1.set_opinion(i_update)
-            temp_pairwise_interaction_log['b1_new_local_op'].append(round(i_update, 2))
-            temp_pairwise_interaction_log['b1_op_change'].append(round(i_update - X_i, 2))
+            self.temp_pairwise_interaction_log['b1_new_local_op'].append(round(i_update, 2))
+            self.temp_pairwise_interaction_log['b1_op_change'].append(round(i_update - X_i, 2))
             
         if self.bettor2.influenced_by_opinions == 1:
             j_update = (1 - w) * X_j + w * X_i
             self.bettor2.set_opinion(j_update)
-            temp_pairwise_interaction_log['b2_new_local_op'].append(round(j_update, 2))
+            self.temp_pairwise_interaction_log['b2_new_local_op'].append(round(j_update, 2))
         elif self.bettor2.influenced_by_opinions == 0:
-            temp_pairwise_interaction_log['b2_new_local_op'].append(round(X_j, 2))
+            self.temp_pairwise_interaction_log['b2_new_local_op'].append(round(X_j, 2))
             
-                
-        #elif abs(X_i - X_j) > delta:
-        #    print('Opinion gap too far apart - no interaction occurs')
-        #    
-        #    temp_pairwise_interaction_log['weight'].append(0) # weight is essentially 0 if no update occurs
-        #    temp_pairwise_interaction_log['b1_new_local_op'].append(round(X_i, 2))
-        #    temp_pairwise_interaction_log['b1_op_change'].append(0)
-        #    temp_pairwise_interaction_log['b2_new_local_op'].append(round(X_j, 2))
         
         # append temporary log dict to actual interaction log dict
         # necessary to do this way as conversations vary in length so done this way
         # to correctly keep each row of data together
-        for key, value in temp_pairwise_interaction_log.items():
+        for key, value in self.temp_pairwise_interaction_log.items():
             self.interaction_log[key].append(value[0])
-            
-            
+ 
         
-    def ambiguous_opinion(self, exact_opinion):
+    def ambiguous_opinion(self, exact_opinion, amount):
         
-        # strongest opinions either poisitive or negative have least ambiguity 
-        if 0 <= exact_opinion <= 0.2:
-            expressed_opinion = round(max(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 0), 2)
-            
-        elif 0.8 <= exact_opinion <= 1:
-            expressed_opinion = round(min(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 1), 2)
+        if amount == 'medium':
+            # strongest opinions either poisitive or negative have least ambiguity 
+            if 0 <= exact_opinion <= 0.2:
+                expressed_opinion = round(max(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 0), 2)
+            elif 0.8 <= exact_opinion <= 1:
+                expressed_opinion = round(min(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 1), 2)
+            # reasonably strong opinions have slightly more ambiguity
+            elif (0.2 < exact_opinion <= 0.4) or (0.6 <= exact_opinion < 0.8):
+                expressed_opinion = round(random.uniform(exact_opinion-0.1, exact_opinion+0.1), 2)  
+            # neutral opinions have greatest ambiguity
+            elif 0.4 < exact_opinion < 0.6:
+                expressed_opinion = round(random.uniform(exact_opinion-0.15, exact_opinion+0.15), 2)
+                
+            return expressed_opinion
         
-        # reasonably strong opinions have slightly more ambiguity
-        elif (0.2 < exact_opinion <= 0.4) or (0.6 <= exact_opinion < 0.8):
-            expressed_opinion = round(random.uniform(exact_opinion-0.1, exact_opinion+0.1), 2)
-            
-        # neutral opinions have greatest ambiguity
-        elif 0.4 < exact_opinion < 0.6:
-            expressed_opinion = round(random.uniform(exact_opinion-0.15, exact_opinion+0.15), 2)
-            
-        return expressed_opinion
+        elif amount == 'low':
+            # strongest opinions either poisitive or negative have least ambiguity 
+            if 0 <= exact_opinion <= 0.2:
+                expressed_opinion = round(max(random.uniform(exact_opinion-0.02, exact_opinion+0.02), 0), 2)
+            elif 0.8 <= exact_opinion <= 1:
+                expressed_opinion = round(min(random.uniform(exact_opinion-0.02, exact_opinion+0.02), 1), 2)
+            # reasonably strong opinions have slightly more ambiguity
+            elif (0.2 < exact_opinion <= 0.4) or (0.6 <= exact_opinion < 0.8):
+                expressed_opinion = round(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 2)
+            # neutral opinions have greatest ambiguity
+            elif 0.4 < exact_opinion < 0.6:
+                expressed_opinion = round(random.uniform(exact_opinion-0.1, exact_opinion+0.1), 2)
+                
+            return expressed_opinion
         
+        elif amount == 'high':
+            # strongest opinions either poisitive or negative have least ambiguity 
+            if 0 <= exact_opinion <= 0.2:
+                expressed_opinion = round(max(random.uniform(exact_opinion-0.1, exact_opinion+0.1), 0), 2)
+            elif 0.8 <= exact_opinion <= 1:
+                expressed_opinion = round(min(random.uniform(exact_opinion-0.1, exact_opinion+0.1), 1), 2)
+            # reasonably strong opinions have slightly more ambiguity
+            elif (0.2 < exact_opinion <= 0.4) or (0.6 <= exact_opinion < 0.8):
+                expressed_opinion = round(random.uniform(exact_opinion-0.18, exact_opinion+0.18), 2)  
+            # neutral opinions have greatest ambiguity
+            elif 0.4 < exact_opinion < 0.6:
+                expressed_opinion = round(random.uniform(exact_opinion-0.25, exact_opinion+0.25), 2)
+                
+            return expressed_opinion
 
         
     
@@ -360,7 +431,7 @@ class GroupConversation:
             
             fuzzy_bc = fuzzy_BC()
  
-            fuzzy_set = fuzzy_bc.fuzzification(mfx, opinion_gap, weight_segmentation = 'a')
+            fuzzy_set = fuzzy_bc.fuzzification(mfx, opinion_gap, weight_segmentation = 'b')
             
             w = fuzzy_bc.defuzzification(fuzzy_set, method = 'centroid')
             
@@ -428,24 +499,52 @@ class GroupConversation:
             self.interaction_log[key].append(value[0])
             
             
-    def ambiguous_opinion(self, exact_opinion):
+    def ambiguous_opinion(self, exact_opinion, amount):
         
-        # strongest opinions either poisitive or negative have least ambiguity 
-        if 0 <= exact_opinion <= 0.2:
-            expressed_opinion = round(max(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 0), 2)
-            
-        elif 0.8 <= exact_opinion <= 1:
-            expressed_opinion = round(min(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 1), 2)
+        if amount == 'medium':
+            # strongest opinions either poisitive or negative have least ambiguity 
+            if 0 <= exact_opinion <= 0.2:
+                expressed_opinion = round(max(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 0), 2)
+            elif 0.8 <= exact_opinion <= 1:
+                expressed_opinion = round(min(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 1), 2)
+            # reasonably strong opinions have slightly more ambiguity
+            elif (0.2 < exact_opinion <= 0.4) or (0.6 <= exact_opinion < 0.8):
+                expressed_opinion = round(random.uniform(exact_opinion-0.1, exact_opinion+0.1), 2)  
+            # neutral opinions have greatest ambiguity
+            elif 0.4 < exact_opinion < 0.6:
+                expressed_opinion = round(random.uniform(exact_opinion-0.15, exact_opinion+0.15), 2)
+                
+            return expressed_opinion
         
-        # reasonably strong opinions have slightly more ambiguity
-        elif (0.2 < exact_opinion <= 0.4) or (0.6 <= exact_opinion < 0.8):
-            expressed_opinion = round(random.uniform(exact_opinion-0.1, exact_opinion+0.1), 2)
-            
-        # neutral opinions have greatest ambiguity
-        elif 0.4 < exact_opinion < 0.6:
-            expressed_opinion = round(random.uniform(exact_opinion-0.15, exact_opinion+0.15), 2)
-            
-        return expressed_opinion
+        elif amount == 'low':
+            # strongest opinions either poisitive or negative have least ambiguity 
+            if 0 <= exact_opinion <= 0.2:
+                expressed_opinion = round(max(random.uniform(exact_opinion-0.02, exact_opinion+0.02), 0), 2)
+            elif 0.8 <= exact_opinion <= 1:
+                expressed_opinion = round(min(random.uniform(exact_opinion-0.02, exact_opinion+0.02), 1), 2)
+            # reasonably strong opinions have slightly more ambiguity
+            elif (0.2 < exact_opinion <= 0.4) or (0.6 <= exact_opinion < 0.8):
+                expressed_opinion = round(random.uniform(exact_opinion-0.05, exact_opinion+0.05), 2)
+            # neutral opinions have greatest ambiguity
+            elif 0.4 < exact_opinion < 0.6:
+                expressed_opinion = round(random.uniform(exact_opinion-0.1, exact_opinion+0.1), 2)
+                
+            return expressed_opinion
+        
+        elif amount == 'high':
+            # strongest opinions either poisitive or negative have least ambiguity 
+            if 0 <= exact_opinion <= 0.2:
+                expressed_opinion = round(max(random.uniform(exact_opinion-0.1, exact_opinion+0.1), 0), 2)
+            elif 0.8 <= exact_opinion <= 1:
+                expressed_opinion = round(min(random.uniform(exact_opinion-0.1, exact_opinion+0.1), 1), 2)
+            # reasonably strong opinions have slightly more ambiguity
+            elif (0.2 < exact_opinion <= 0.4) or (0.6 <= exact_opinion < 0.8):
+                expressed_opinion = round(random.uniform(exact_opinion-0.18, exact_opinion+0.18), 2)  
+            # neutral opinions have greatest ambiguity
+            elif 0.4 < exact_opinion < 0.6:
+                expressed_opinion = round(random.uniform(exact_opinion-0.25, exact_opinion+0.25), 2)
+                
+            return expressed_opinion
             
        
 

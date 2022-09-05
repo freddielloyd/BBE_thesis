@@ -572,33 +572,15 @@ if __name__ == "__main__":
     
     
 
-
 # =============================================================================
-# if __name__ == "__main__":
 # 
-#     for i in [22, 42, 51]:
-#         #print('seed: ', i)
-#         start = time.time()
-#         random.seed(i)
-#         #np.random.seed(i) # no numpy randoms used
-#         print('Running')
-#         bbe = BBE(i)
-#         print('Running')
-#         bbe.runSession()
-#         end = time.time()
-#         print('Time taken: ', end - start)
-# =============================================================================
-        
-
-# =============================================================================
 # 
 # if __name__ == "__main__":
 # 
 #     for i in range(100):
+#     for i in [22, 42, 51]:
 #         #print('seed: ', i)
 #         start = time.time()
-#         random.seed(i)
-#         #np.random.seed(i) # no numpy randoms used
 #         print('Running')
 #         bbe = BBE(i)
 #         print('Running')
@@ -606,5 +588,5 @@ if __name__ == "__main__":
 #         end = time.time()
 #         print('Time taken: ', end - start)
 #         
+#         
 # =============================================================================
-        

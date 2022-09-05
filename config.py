@@ -31,6 +31,15 @@ agents = [
           ('Agent_Opinionated_Leader_Wins', 5),
           ('Agent_Opinionated_Underdog', 5),
           ('Agent_Opinionated_Back_Favourite', 5),
+          ('Agent_Opinionated_Linex', 80),
+          ('Agent_Opinionated_Priviledged', 50)
+          ]
+
+eightyagents = [
+          ('Agent_Opinionated_Random', 5),
+          ('Agent_Opinionated_Leader_Wins', 5),
+          ('Agent_Opinionated_Underdog', 5),
+          ('Agent_Opinionated_Back_Favourite', 5),
           ('Agent_Opinionated_Linex', 50),
           ('Agent_Opinionated_Priviledged', 20)
           ]

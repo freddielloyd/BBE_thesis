@@ -67,7 +67,6 @@ class fuzzy_BC:
             op_vl = fuzz.trimf(self.x_opinion_gap, [0.276, 1, 1]) # very large
             
             if weight_segmentation =='a':
-                # Agent interaction update weight membership
                 w_vstr = fuzz.trimf(self.x_weight, [0.83, 1, 1]) # very strong
                 w_qstr = fuzz.trimf(self.x_weight, [0.67, 0.83, 0.83]) # quite strong
                 w_str = fuzz.trimf(self.x_weight, [0.55, 0.7, 0.7]) # strong
@@ -76,7 +75,6 @@ class fuzzy_BC:
                 w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
                         
             elif weight_segmentation == 'b':
-                # Agent interaction update weight membership
                 w_vstr = fuzz.trimf(self.x_weight, [0.78, 1, 1]) # very strong
                 w_qstr = fuzz.trimf(self.x_weight, [0.58, 0.8, 0.8]) # quite strong
                 w_str = fuzz.trimf(self.x_weight, [0.28, 0.6, 0.6]) # strong
@@ -85,7 +83,6 @@ class fuzzy_BC:
                 w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
             
             elif weight_segmentation == 'c':
-                # Agent interaction update weight membership
                 w_vstr = fuzz.trimf(self.x_weight, [0.16, 1, 1]) # very strong
                 w_qstr = fuzz.trimf(self.x_weight, [0.12, 0.18, 0.18]) # quite strong
                 w_str = fuzz.trimf(self.x_weight, [0.08, 0.14, 0.14]) # strong
@@ -94,7 +91,6 @@ class fuzzy_BC:
                 w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
                         
             elif weight_segmentation == 'd':
-                # Agent interaction update weight membership
                 w_vstr = fuzz.trimf(self.x_weight, [0.04, 1, 1]) # very strong
                 w_qstr = fuzz.trimf(self.x_weight, [0.03, 0.04, 0.04]) # quite strong
                 w_str = fuzz.trimf(self.x_weight, [0.02, 0.03, 0.03]) # strong
@@ -102,6 +98,17 @@ class fuzzy_BC:
                 w_qw = fuzz.trimf(self.x_weight, [0, 0.01, 0.01]) # quite weak
                 w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
                 
+            elif weight_segmentation == 'strongest':
+                w_vstr = fuzz.trimf(self.x_weight, [0.83, 1, 1]) # very strong
+                w_qstr = fuzz.trimf(self.x_weight, [0.67, 0.83, 0.83]) # quite strong
+                w_str = fuzz.trimf(self.x_weight, [0.55, 0.7, 0.7]) # strong
+                w_w = fuzz.trimf(self.x_weight, [0.33, 0.33, 0.58]) # weak
+                w_qw = fuzz.trimf(self.x_weight, [0, 0.03, 0.35]) # quite weak
+                w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
+                        
+            
+            
+            
             
             
             # We need the activation of our fuzzy membership functions at a value for opinion gap.
