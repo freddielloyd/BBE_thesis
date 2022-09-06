@@ -23,8 +23,6 @@ class BettingAgent:
                  upper_op_bound, exchange=None):
         self.id = id
         
-        self.shuffled_id = None
-        
         self.name = name
         self.balance = 100000000
         self.liability = 0  # Amount that bettor is liable for if bettor lays winner
@@ -85,6 +83,9 @@ class BettingAgent:
         self.influenced_by_opinions = influenced_by_opinions  # [0,1] values. 0 - agent shares opinions, but does not listen.
         # 1 - agent shares and listens to opinions
         self.in_conversation = 0
+        
+        
+        self.shuffled_id = None
         
         # degree of connection attribute for interaction selection probability
         self.degree_of_connection = None

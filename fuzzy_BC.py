@@ -62,9 +62,9 @@ class fuzzy_BC:
             op_vsm = fuzz.trimf(self.x_opinion_gap, [0, 0, 0.07]) # very small
             op_qsm = fuzz.trimf(self.x_opinion_gap, [0, 0.07, 0.14]) # quite small
             op_sm = fuzz.trimf(self.x_opinion_gap, [0.07, 0.14, 0.21]) # small
-            op_l = fuzz.trimf(self.x_opinion_gap, [0.14, 0.21, 0.276]) # large
-            op_ql = fuzz.trimf(self.x_opinion_gap, [0.21, 0.276, 0.342]) # quite large
-            op_vl = fuzz.trimf(self.x_opinion_gap, [0.276, 1, 1]) # very large
+            op_l = fuzz.trimf(self.x_opinion_gap, [0.14, 0.21, 0.28]) # large
+            op_ql = fuzz.trimf(self.x_opinion_gap, [0.21, 0.28, 0.35]) # quite large
+            op_vl = fuzz.trimf(self.x_opinion_gap, [0.28, 1, 1]) # very large
             
             if weight_segmentation =='a':
                 w_vstr = fuzz.trimf(self.x_weight, [0.83, 1, 1]) # very strong

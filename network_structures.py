@@ -125,9 +125,8 @@ class WattsStrogatz(graph):
         wsmodel = graph(self.num_of_nodes, self.num_of_neighbors, self.rewiring_probability)
         
         assert self.num_of_neighbors%2==0,"number of neighbors must be even number"
-        
-        
-        #first we create a regular ring lattice
+
+        #first create a regular ring lattice
         for i in range(self.num_of_nodes):
             for j in range(1,self.num_of_neighbors//2+1):
                 wsmodel.append(i,i+j if i+j<self.num_of_nodes else i+j-self.num_of_nodes,1)   

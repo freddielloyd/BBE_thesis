@@ -67,44 +67,6 @@ class Session:
         self.competitor_odds = {'time': [], 'odds': [], 'competitor': []}
         self.competitor_distances = {'time': [], 'distance': [], 'competitor': []}
         
-        self.pairwise_interaction_log = {'type': [], 
-                                         'time': [], 
-                                         'length': [],
-                                         'bettor1': [], 
-                                         'bettor1_id': [],
-                                         'b1_local_op': [], 
-                                         'bettor2': [],
-                                         'bettor2_id': [],
-                                         'deg_of_connection': [],
-                                         'b2_local_op': [],
-                                         'b2_expressed_op': [],
-                                         'local_op_gap': [],
-                                         'weight': [],
-                                         'b1_new_local_op': [],
-                                         'b1_op_change': [],
-                                         'b2_new_local_op': []}     
-        
-        self.group_interaction_log = {'type': [], 
-                                      'conv_id': [], 
-                                      'time': [], 
-                                      'length': [],
-                                      'bettor1': [], 
-                                      'bettor1_id': [],
-                                      'b1_local_op': [], 
-                                      'num_bettors': [],
-                                      'bettors': [],
-                                      'bettors_ids': [],
-                                      'degs_of_connection': [],
-                                      'bettors_local_ops': [],
-                                      'bettors_expressed_ops': [],
-                                      #'local_op_gap': [],
-                                      'weights': [],
-                                      'ops_x_weights': [],
-                                      'b1_new_local_op': [],
-                                      'b1_op_change': []}
-        
-        self.interaction_logs = {'pairwise' : self.pairwise_interaction_log,
-                                 'group' : self.group_interaction_log}
 
         self.generateRaceData()
         self.initialiseThreads()
@@ -150,7 +112,13 @@ class Session:
         """
         Logic for betting agent threads
         """
+        #if SHUFFLE == 'yes':
+        #    print("AGENT " + str(agent.shuffled_id) + " INITIALISED...")
+        #elif SHUFFLE == 'no':
+        #    print("AGENT " + str(agent.id) + " INITIALISED...")
+        
         print("AGENT " + str(agent.shuffled_id) + " INITIALISED...")
+        
         #print(agent)
         # Need to have pre-event betting period
         self.event.wait()
@@ -240,9 +208,14 @@ class Session:
                     print(order)
                 agent.numOfBets = agent.numOfBets + 1
                 self.exchangeOrderQs[order.exchange].put(order)
-
-
+        
         print("ENDING AGENT " + str(agent.shuffled_id))
+
+        #if SHUFFLE == 'yes':
+        #    print("ENDING AGENT " + str(agent.shuffled_id))
+        #elif SHUFFLE == 'no':
+        #    print("ENDING AGENT " + str(agent.id))
+            
         return 0
 
     def populateMarket(self):
@@ -253,6 +226,7 @@ class Session:
         def initAgent(name, id):
 
             uncertainty = 1.0
+            #uncertainty = 0.5
 
             local_opinion = 1/ NUM_OF_COMPETITORS
 
@@ -294,20 +268,27 @@ class Session:
                 self.bettingAgents[id] = initAgent(agent[0], id)
                 id = id + 1
 
-        to_shuffle = list(self.bettingAgents.values()) # cant shuffle dict so need to make list then convert back after shuffling
-        #print(to_shuffle)
-        random.shuffle(to_shuffle)  # ensures all types of bettors are mixed up rather than all adjacent
-        #print(to_shuffle)
-        
-        self.bettingAgents = dict(zip(self.bettingAgents, to_shuffle))
-        #print(self.bettingAgents)
-        
-        for i in range(len(self.bettingAgents.values())):
-            agent = list(self.bettingAgents.values())[i]
-            #print(agent, agent.id)
-            new_id = list(self.bettingAgents.keys())[i]
-            agent.shuffled_id = new_id # set id to new id after shuffling so can match up as needed
-            #print(agent, agent.id, agent.shuffled_id)
+        if SHUFFLE == 'yes':
+            to_shuffle = list(self.bettingAgents.values()) # cant shuffle dict so need to make list then convert back after shuffling
+            #print(to_shuffle)
+            random.shuffle(to_shuffle)  # ensures all types of bettors are mixed up rather than all adjacent
+            #print(to_shuffle)
+            
+            self.bettingAgents = dict(zip(self.bettingAgents, to_shuffle))
+            #print(self.bettingAgents)
+            
+            for i in range(len(self.bettingAgents.values())):
+                agent = list(self.bettingAgents.values())[i]
+                #print(agent, agent.id)
+                new_id = list(self.bettingAgents.keys())[i]
+                agent.shuffled_id = new_id # set id to new id after shuffling so can match up as needed
+                #print(agent, agent.id, agent.shuffled_id)
+                
+        elif SHUFFLE == 'no':
+            # even if shuffle = 'no', assign shuffled id as regular id to simplify code elsewhere
+            for i in range(len(self.bettingAgents.values())):
+                agent = list(self.bettingAgents.values())[i]
+                agent.shuffled_id = agent.id
 
 
     def initialiseExchanges(self):
@@ -323,12 +304,11 @@ class Session:
         Initialise betting agents
         """
         self.populateMarket()
-        self.OpinionDynamicsPlatform = OpinionDynamicsPlatform(list(self.bettingAgents.values()), 
+        self.OpinionDynamicsPlatform = OpinionDynamicsPlatform(list(self.bettingAgents.values()),
                                                                MODEL_NAME, 
                                                                NETWORK_NAME, 
                                                                INTERACTION_TYPE,
                                                                INTERACTION_SELECTION,
-                                                               self.interaction_logs,
                                                                MUDDLE_OPINIONS)
         
         # Create threads for all betting agents that wait until event session
@@ -416,7 +396,7 @@ class Session:
         for thread in self.bettingAgentThreads: thread.join()
         
 
-        print("Simulation complete")
+        print("Simulation{} complete".format(simulationId))
 
         print("Writing data....")
         for id, ex in self.exchanges.items():
@@ -436,6 +416,14 @@ class Session:
         #    print("Agent " + str(id) + "\'s final balance: " + str(agent.balance))
 
         createstats(self.bettingAgents, simulationId, self.tape, self.priceRecord, self.spreads)
+
+        interaction_log_df = self.OpinionDynamicsPlatform.output_interaction_log()      
+        if INTERACTION_TYPE == 'pairwise':
+            interaction_log_df.to_csv('data/pairwise_interaction_log{}.csv'.format(simulationId), index=False, header=True)
+        elif INTERACTION_TYPE == 'group':
+            interaction_log_df.to_csv('data/group_interaction_log{}.csv'.format(simulationId), index=False, header=True)
+
+
 
     def initialiseThreads(self):
         self.initialiseExchanges()
@@ -481,6 +469,7 @@ class BBE(Session):
     # MAIN LOOP
     # argFuncf is an optional function which sets up a new session (takes in a session)
     def runSession(self, argFunc=None):
+        
         # Simulation attributes
         currentSimulation = 0
         ####################
@@ -534,19 +523,6 @@ class BBE(Session):
     
             opinion_hist_s_df = pandas.DataFrame.from_dict(self.session.opinion_hist_s)
             opinion_hist_s_df.to_csv('data/opinions/opinion_hist_s{}.csv'.format(currentSimulation), index=False)
-            
-            
-            if INTERACTION_TYPE == 'pairwise':
-                interaction_log_df = pandas.DataFrame.from_dict(self.session.interaction_logs['pairwise'], orient='index')
-                interaction_log_df = interaction_log_df.transpose() # essential with orient = index or else different lengths
-                interaction_log_df.to_csv('data/pairwise_interaction_log{}.csv'.format(currentSimulation), index=False, header=True)
-                
-                
-            elif INTERACTION_TYPE == 'group':
-                interaction_log_df = pandas.DataFrame.from_dict(self.session.interaction_logs['group'], orient='index')
-                interaction_log_df = interaction_log_df.transpose()
-                interaction_log_df.to_csv('data/group_interaction_log{}.csv'.format(currentSimulation), index=False, header=True)
-                
             
             sim_finish_time = time.time()
             

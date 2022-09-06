@@ -47,10 +47,12 @@ class LocalConversation:
                                              'bettor1': [], 
                                              'bettor1_id': [],
                                              'b1_local_op': [], 
+                                             'b1_uncertainty': [],
                                              'bettor2': [],
                                              'bettor2_id': [],
                                              'deg_of_connection': [],
                                              'b2_local_op': [],
+                                             'b2_uncertainty': [],
                                              'b2_expressed_op': [],
                                              'local_op_gap': [],
                                              'weight': [],
@@ -72,6 +74,9 @@ class LocalConversation:
         
         self.temp_pairwise_interaction_log['b1_local_op'].append(round(self.bettor1.local_opinion, 2))
         self.temp_pairwise_interaction_log['b2_local_op'].append(round(self.bettor2.local_opinion, 2))
+        
+        self.temp_pairwise_interaction_log['b1_uncertainty'].append(round(self.bettor1.uncertainty, 2))
+        self.temp_pairwise_interaction_log['b2_uncertainty'].append(round(self.bettor2.uncertainty, 2))
         
         if self.model == 'BC':
             self.bounded_confidence_step(mu, delta)
@@ -114,15 +119,15 @@ class LocalConversation:
                 self.bettor2.set_opinion(j_update)
                 self.temp_pairwise_interaction_log['b2_new_local_op'].append(round(j_update, 2))
             elif self.bettor2.influenced_by_opinions == 0:
-                self.temp_pairwise_interaction_log['b2_new_local_op'].append(round(X_j, 2))
+                self.temp_pairwise_interaction_log['b2_new_local_op'].append('N/A')
                 
         
         elif opinion_gap > delta:
         #    print('Opinion gap too far apart - no interaction occurs')
             self.temp_pairwise_interaction_log['weight'].append(0) # weight is essentially 0 if no update occurs
-            self.temp_pairwise_interaction_log['b1_new_local_op'].append(round(X_i, 2))
+            self.temp_pairwise_interaction_log['b1_new_local_op'].append('N/A')
             self.temp_pairwise_interaction_log['b1_op_change'].append(0)
-            self.temp_pairwise_interaction_log['b2_new_local_op'].append(round(X_j, 2))
+            self.temp_pairwise_interaction_log['b2_new_local_op'].append('N/A')
         
         # append temporary log dict to actual interaction log dict
         # necessary to do this way as conversations vary in length so done this way
@@ -134,8 +139,9 @@ class LocalConversation:
 
     def relative_agreement_step(self, weight):
         
-        # currently all agents initialised with uncertainty = 1, so h_ij = h_ji = 0 so no interaction happens?
-        # BUT SETS NEW UNCERTAINTY
+        # currently all agents initialised with same uncertainty, so u_i = u_j so no update of 
+        # uncertainty can ever happen
+
 
         X_i = self.bettor1.local_opinion
         u_i = self.bettor1.uncertainty
@@ -146,31 +152,35 @@ class LocalConversation:
         self.temp_pairwise_interaction_log['b2_expressed_op'].append('N/A')
         opinion_gap = abs(X_i - X_j)  
         self.temp_pairwise_interaction_log['local_op_gap'].append(round(opinion_gap, 2)) 
-        self.temp_pairwise_interaction_log['weight'].append(weight)
+        
 
         # symmetrical so these are the same?
         h_ij = min((X_i + u_i), (X_j + u_j)) - max((X_i - u_i), (X_j - u_j))
         h_ji = min((X_j + u_j), (X_i + u_i)) - max((X_j - u_j), (X_i - u_i))
         
-        #print('xi local op: ', X_i)
-        #print('xj local op: ', X_j)
+        print('xi local op: ', X_i)
+        print('xj local op: ', X_j)
         
-        #print('xi uncertainty: ', u_i)
-        #print('xj uncertainty: ', u_j)
+        print('xi uncertainty: ', u_i)
+        print('xj uncertainty: ', u_j)
         
-        #print('hij: ', h_ij)
-        #print('hji: ', h_ji)
+        print('hij: ', h_ij)
+        print('hji: ', h_ji)
 
         if (h_ji > u_j):
+            self.temp_pairwise_interaction_log['weight'].append(weight)
             if self.bettor1.influenced_by_opinions == 1:
                 RA_ji = (h_ji / u_j) - 1
+                print('RA_ji: ', RA_ji)
                 i_update = X_i + (weight * RA_ji * (X_j - X_i))
                 self.bettor1.set_opinion(i_update)
-                self.bettor1.set_uncertainty(u_i + (weight * RA_ji * (u_j - u_i)))
+                uncertainity_update = u_i + (weight * RA_ji * (u_j - u_i))
+                self.bettor1.set_uncertainty(uncertainity_update)
                 
                 self.temp_pairwise_interaction_log['b1_new_local_op'].append(round(i_update, 2))
                 self.temp_pairwise_interaction_log['b1_op_change'].append(round(i_update - X_i, 2))
         elif (h_ji <= u_j):
+                self.temp_pairwise_interaction_log['weight'].append(0)
                 self.temp_pairwise_interaction_log['b1_new_local_op'].append('N/A')
                 self.temp_pairwise_interaction_log['b1_op_change'].append(0)
             
@@ -238,7 +248,7 @@ class LocalConversation:
         self.temp_pairwise_interaction_log['local_op_gap'].append(round(opinion_gap, 2))
                 
         fuzzy_bc = fuzzy_BC()
-        fuzzy_set = fuzzy_bc.fuzzification(mfx, opinion_gap, weight_segmentation = 'd')
+        fuzzy_set = fuzzy_bc.fuzzification(mfx, opinion_gap, weight_segmentation = 'a')
         w = fuzzy_bc.defuzzification(fuzzy_set, method = 'centroid')
         self.temp_pairwise_interaction_log['weight'].append(round(w, 2))
         
@@ -549,30 +559,20 @@ class GroupConversation:
        
 
 class OpinionDynamicsPlatform:
-    def __init__(self, bettors, model, network_structure, 
-                 interaction_type, interaction_selection, interaction_logs,
-                 muddle_opinions):
+    def __init__(self, bettors, model,
+                 network_structure, interaction_type, interaction_selection, muddle_opinions):
         self.bettors = bettors
-        
         self.model = model
         self.conversations = []
         self.number_of_conversations = 0
         
         self.network_structure = network_structure
-        
         self.interaction_type = interaction_type
-        if self.interaction_type == 'pairwise':
-            self.interaction_log = interaction_logs['pairwise']
-        elif self.interaction_type == 'group':
-            self.interaction_log = interaction_logs['group']
-            
         self.interaction_selection = interaction_selection
-        
         self.muddle_opinions = muddle_opinions
 
         self.all_influenced_by_opinions = [bettor for bettor in bettors if bettor.influenced_by_opinions == 1]
         self.all_opinionated = [bettor for bettor in bettors if bettor.opinionated == 1]
-        
 
         self.available_influenced_by_opinions = [bettor for bettor in self.all_influenced_by_opinions if
                                                  bettor.in_conversation == 0]
@@ -584,40 +584,81 @@ class OpinionDynamicsPlatform:
         # self.unavailable_opinionated = [bettor for bettor in self.all_opinionated if
         #                                 bettor.in_conversation == 1]
         
-        
-        # initialise network and output structure csv 
+        # if network structure desired, initialise network and output structure csv 
         if self.network_structure == 'watts_strogatz':
             
-            watts_strogatz = WattsStrogatz(len(self.all_opinionated), num_neighbours, rewiring_prob)
-            
+            watts_strogatz = WattsStrogatz(len(self.all_opinionated), NUM_NEIGHBOURS, REWIRING_PROB)
             self.network = watts_strogatz.create_network()
             
             # create network structure data frame to output for use in Tableau
-            vertexes = []
+            ids = []
+            nodes = []
             bettor_types = []
             edges = []
             degrees = []
             
             for i in range(len(self.network.vertex())): 
-
-                vertexes.append(np.sort(self.network.vertex())[i])
+                ids.append(self.all_opinionated[i].id)
+                nodes.append(np.sort(self.network.vertex())[i])
                 bettor_types.append(str(self.all_opinionated[i]).lstrip("<betting_agents.Agent_Opinionated_").split().pop(0))
                 edges.append(self.network.degree(i))
                 degrees.append(self.network.edge(i))
-                
-            data = {'id': [bettor.id for bettor in bettors],
-                    'shuffled_id': vertexes,
-                    'bettor type': bettor_types,
-                    'Number of Neighbours': edges,
-                    'Neighbours': degrees}
             
-            df = pd.DataFrame(data)
-
-            df.to_csv('/Users/freddielloyd/Documents/Uob Documents/DSP Thesis/data/network_structure.csv',
-                      index = False)
-
-
-
+                data = {#'id': [bettor.id for bettor in self.bettors],
+                        'id': ids,
+                        'shuffled_id': nodes,
+                        'bettor type': bettor_types,
+                        'Number of Neighbours': edges,
+                        'Neighbours': degrees}
+                
+                df = pd.DataFrame(data)
+                df.to_csv('/Users/freddielloyd/Documents/Uob Documents/DSP Thesis/data/network_structure.csv',
+                          index = False)
+        
+        pairwise_interaction_log = {'type': [], 
+                                    'time': [], 
+                                    'length': [],
+                                    'bettor1': [], 
+                                    'bettor1_id': [],
+                                    'b1_local_op': [], 
+                                    'b1_uncertainty': [],
+                                    'bettor2': [],
+                                    'bettor2_id': [],
+                                    'deg_of_connection': [],
+                                    'b2_local_op': [],
+                                    'b2_uncertainty': [],
+                                    'b2_expressed_op': [],
+                                    'local_op_gap': [],
+                                    'weight': [],
+                                    'b1_new_local_op': [],
+                                    'b1_op_change': [],
+                                    'b2_new_local_op': []}     
+   
+        group_interaction_log = {'type': [], 
+                                'conv_id': [], 
+                                'time': [], 
+                                'length': [],
+                                'bettor1': [], 
+                                'bettor1_id': [],
+                                'b1_local_op': [], 
+                                'num_bettors': [],
+                                'bettors': [],
+                                'bettors_ids': [],
+                                'degs_of_connection': [],
+                                'bettors_local_ops': [],
+                                'bettors_expressed_ops': [],
+                                #'local_op_gap': [],
+                                'weights': [],
+                                'ops_x_weights': [],
+                                'b1_new_local_op': [],
+                                'b1_op_change': []}
+        
+        if self.interaction_type == 'pairwise':
+            self.interaction_log = pairwise_interaction_log
+        elif self.interaction_type == 'group':
+            self.interaction_log = group_interaction_log
+        
+        
     def initiate_conversations(self, time):
         
         if self.interaction_type == 'pairwise':
@@ -1005,9 +1046,14 @@ class OpinionDynamicsPlatform:
 #                     return bettors
 #                     
 # =============================================================================
-            
- 
-                
+     
+    def output_interaction_log(self):
+        
+        interaction_log_df = pd.DataFrame.from_dict(self.interaction_log, orient='index')
+        interaction_log_df = interaction_log_df.transpose() # essential with orient = index or else different lengths
+        
+        return interaction_log_df
+              
 
     def settle_opinions(self, winningCompetitor):
 

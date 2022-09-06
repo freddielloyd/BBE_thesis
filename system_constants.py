@@ -57,16 +57,16 @@ lmda = 0.5 # used for Relative Disagreement Model eg. 0.1
 
 #OD models
 #MODEL_NAME = 'BC'
-MODEL_NAME = 'RA'
+#MODEL_NAME = 'RA'
 #MODEL_NAME = 'RD'
-#MODEL_NAME = 'fuzzy_BC'
+MODEL_NAME = 'fuzzy_BC'
 
 OPINION_COMPETITOR = 1 # Bettors will be expressing opinions about this competitor. Opinions are in the range of [0,1].
 
 
 # Fuzzy membership function (triangular or trapezoidal)
 FUZZY_MFX = 'triangular' 
-#FUZZY_MFX = 'trapezoidal'
+#FUZZY_MFX = 'trapezoidal' # NOT YET IMPLEMENTED FULLY
 
 # Pairwise or group interactions
 INTERACTION_TYPE = 'pairwise'
@@ -74,18 +74,20 @@ INTERACTION_TYPE = 'pairwise'
 
 # Network Structure
 
-NETWORK_NAME = 'fully_connected'
-#NETWORK_NAME = 'watts_strogatz'
+#NETWORK_NAME = 'fully_connected'
+NETWORK_NAME = 'watts_strogatz'
+
 # network parameters - irrelevant for fully connected network
-num_neighbours = 6
-rewiring_prob = 0.25
-
-
+# shuffle agent ids before network created - creates random network vs strategies being clustered together
+SHUFFLE = 'yes'
+#SHUFFLE = 'no'
+# num of initial neighbours before WS method rewires each one with probability rewiring_prob
+NUM_NEIGHBOURS = 6
+REWIRING_PROB = 0.25
 
 # method for network interaction participant selection - irrelevant for fully connected network
 #INTERACTION_SELECTION = 'direct_neighbours'
 INTERACTION_SELECTION = 'across_network'
-
 
 
 # should opinions be slightly muddled depending on strength to represent ambiguity
