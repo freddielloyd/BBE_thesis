@@ -302,7 +302,6 @@ class Simulator:
             header.append(str(c.id))
 
         fileName = "data/race_event_" + str(name) + ".csv"
-        #fileName = "/Users/freddielloyd/Documents/Uob Documents/DSP THESIS/data/race_event_sims/race_event_" + str(name) + ".csv"
         with open(fileName, 'w', newline = '') as file:
             writer = csv.writer(file)
             writer.writerow(header)

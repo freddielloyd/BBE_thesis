@@ -1,7 +1,7 @@
 # System constants used across BBE
 
 # General
-NUM_OF_SIMS = 5
+NUM_OF_SIMS = 10
 NUM_OF_COMPETITORS = 4
 NUM_OF_EXCHANGES = 1
 PRE_RACE_BETTING_PERIOD_LENGTH = 0
@@ -10,9 +10,6 @@ SESSION_SPEED_MULTIPLIER = 1
 
 # Data Store Attributes
 RACE_DATA_FILENAME = 'data/race_event_core.csv'
-#RACE_DATA_FILENAME = '/Users/freddielloyd/Documents/Uob Documents/DSP THESIS/data/race_event_core.csv'
-
-
 
 # Message Protocol Numbers
 EXCHANGE_UPDATE_MSG_NUM = 1
@@ -56,10 +53,10 @@ lmda = 0.5 # used for Relative Disagreement Model eg. 0.1
 
 
 #OD models
-MODEL_NAME = 'BC'
+#MODEL_NAME = 'BC'
 #MODEL_NAME = 'RA'
 #MODEL_NAME = 'RD'
-#MODEL_NAME = 'fuzzy_BC'
+MODEL_NAME = 'fuzzy_BC'
 
 OPINION_COMPETITOR = 1 # Bettors will be expressing opinions about this competitor. Opinions are in the range of [0,1].
 

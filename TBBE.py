@@ -3,14 +3,6 @@
 
 import math, threading, time, queue, random, csv, pandas
 
-import os
-import sys
-
-sys.path
-file_dir = os.path.dirname("/Users/freddielloyd/Documents/Uob Documents/DSP THESIS/Git_Repo/")
-sys.path.append(file_dir)
-sys.path
-
 import config
 from copy import deepcopy
 
@@ -27,9 +19,7 @@ from ODmodels import *
 
 from plotting import plotting_main
 
-import os
 
-os.chdir('/Users/freddielloyd/Documents/Uob Documents/DSP THESIS')
 
 class Session:
 

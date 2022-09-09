@@ -471,7 +471,7 @@ class GroupConversation:
         
 
     # mfx is triangular currently
-    def group_fuzzy_bounded_confidence_step(self, delta, mfx):
+    def group_fuzzy_bounded_confidence_step(self, mfx):
                
         X_i = self.bettor_initiator.local_opinion
         self.temp_group_interaction_log['b1_local_op'].append(round(X_i, 2))
@@ -629,7 +629,7 @@ class OpinionDynamicsPlatform:
                         'Neighbours': degrees}
                 
                 df = pd.DataFrame(data)
-                df.to_csv('/Users/freddielloyd/Documents/Uob Documents/DSP Thesis/data/network_structure.csv',
+                df.to_csv('data/network_structure.csv',
                           index = False)
         
         pairwise_interaction_log = {'type': [], 
@@ -919,9 +919,9 @@ class OpinionDynamicsPlatform:
             elif self.interaction_type == 'group':
                 # randomly select given amount of available neighbours
                 num_bettors_to_select = random.randint(1, min(10, len(self.available_neighbours)))
-                conv_group = random.sample(self.available_neighbours, 
-                                           num_bettors_to_select,
-                                           replace = False)
+                conv_group = np.random.choice(self.available_neighbours, 
+                                              num_bettors_to_select,
+                                              replace = False)
                 return conv_group
                 
     
