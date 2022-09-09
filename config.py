@@ -26,12 +26,21 @@
 # =============================================================================
 
 
-agents = [
+hiagents = [
           ('Agent_Opinionated_Random', 5),
           ('Agent_Opinionated_Leader_Wins', 5),
           ('Agent_Opinionated_Underdog', 5),
           ('Agent_Opinionated_Back_Favourite', 5),
           ('Agent_Opinionated_Linex', 80),
+          ('Agent_Opinionated_Priviledged', 50)
+          ]
+
+agents = [
+          ('Agent_Opinionated_Random', 170),
+          ('Agent_Opinionated_Leader_Wins', 10),
+          ('Agent_Opinionated_Underdog', 10),
+          ('Agent_Opinionated_Back_Favourite', 10),
+          ('Agent_Opinionated_Linex', 0),
           ('Agent_Opinionated_Priviledged', 50)
           ]
 

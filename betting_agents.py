@@ -63,8 +63,8 @@ class BettingAgent:
         self.start_a2 = 1 - self.start_a1 # start weight for global_opinion
         self.start_a3 = 0  # start weight for event_opinion
 
-        #self.strategy_weight = 0.5
-        self.strategy_weight = 0
+        self.strategy_weight = 0.5
+        #self.strategy_weight = 0
 
         self.a1 = self.start_a1  # weight for local_opinion
         self.a2 = self.start_a2  # weight for global_opinion

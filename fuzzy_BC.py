@@ -67,7 +67,7 @@ class fuzzy_BC:
             op_vl = fuzz.trimf(self.x_opinion_gap, [0.28, 1, 1]) # very large
             
             if weight_segmentation =='a':
-                w_vstr = fuzz.trimf(self.x_weight, [0.83, 1, 1]) # very strong
+                w_vstr = fuzz.trimf(self.x_weight, [0.8, 1, 1]) # very strong
                 w_qstr = fuzz.trimf(self.x_weight, [0.67, 0.83, 0.83]) # quite strong
                 w_str = fuzz.trimf(self.x_weight, [0.55, 0.7, 0.7]) # strong
                 w_w = fuzz.trimf(self.x_weight, [0.33, 0.33, 0.58]) # weak
@@ -98,12 +98,12 @@ class fuzzy_BC:
                 w_qw = fuzz.trimf(self.x_weight, [0, 0.01, 0.01]) # quite weak
                 w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
                 
-            elif weight_segmentation == 'strongest':
-                w_vstr = fuzz.trimf(self.x_weight, [0.83, 1, 1]) # very strong
-                w_qstr = fuzz.trimf(self.x_weight, [0.67, 0.83, 0.83]) # quite strong
-                w_str = fuzz.trimf(self.x_weight, [0.55, 0.7, 0.7]) # strong
-                w_w = fuzz.trimf(self.x_weight, [0.33, 0.33, 0.58]) # weak
-                w_qw = fuzz.trimf(self.x_weight, [0, 0.03, 0.35]) # quite weak
+            elif weight_segmentation == 'a1':
+                w_vstr = fuzz.trimf(self.x_weight, [0.84, 1, 1]) # very strong
+                w_qstr = fuzz.trimf(self.x_weight, [0.7, 0.9, 0.9]) # quite strong
+                w_str = fuzz.trimf(self.x_weight, [0.61, 0.77, 0.77]) # strong
+                w_w = fuzz.trimf(self.x_weight, [0.39, 0.39, 0.65]) # weak
+                w_qw = fuzz.trimf(self.x_weight, [0, 0.09, 0.42]) # quite weak
                 w_vw = fuzz.trimf(self.x_weight, [0, 0, 0]) # very weak
                         
             

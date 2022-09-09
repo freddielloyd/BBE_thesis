@@ -540,7 +540,7 @@ if __name__ == "__main__":
     #random.seed(51) # only reproducible for first sim if used here
     #np.random.seed(100) # no numpy randoms used
     print('Running')
-    bbe = BBE(51) # seed passed to BBE so can be used in title of plots for race identification
+    bbe = BBE(44) # seed passed to BBE so can be used where needed eg in title of plots for race identification
     print('Running')
     bbe.runSession()
     end = time.time()

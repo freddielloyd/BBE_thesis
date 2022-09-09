@@ -79,11 +79,11 @@ NETWORK_NAME = 'watts_strogatz'
 
 # network parameters - irrelevant for fully connected network
 # shuffle agent ids before network created - creates random network vs strategies being clustered together
-SHUFFLE = 'yes'
-#SHUFFLE = 'no'
+#SHUFFLE = 'yes'
+SHUFFLE = 'no'
 # num of initial neighbours before WS method rewires each one with probability rewiring_prob
-NUM_NEIGHBOURS = 6
-REWIRING_PROB = 0.25
+NUM_NEIGHBOURS = 10
+REWIRING_PROB = 0.5
 
 # method for network interaction participant selection - irrelevant for fully connected network
 #INTERACTION_SELECTION = 'direct_neighbours'
