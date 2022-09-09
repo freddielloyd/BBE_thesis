@@ -86,7 +86,7 @@ class LocalConversation:
             self.relative_disagreement_step(mu, lmda)
             
         elif self.model == 'fuzzy_BC':
-            self.fuzzy_bounded_confidence_step(delta, FUZZY_MFX)  
+            self.fuzzy_bounded_confidence_step(FUZZY_MFX)  
             
         else:
             return print('OD model does not exist')
@@ -243,7 +243,7 @@ class LocalConversation:
                                   
                     
     # mfx is triangular currently
-    def fuzzy_bounded_confidence_step(self, delta, mfx):
+    def fuzzy_bounded_confidence_step(self, mfx):
 
         X_i = self.bettor1.local_opinion
         X_j = self.bettor2.local_opinion
@@ -348,8 +348,6 @@ class GroupConversation:
         self.conversation_length = random.uniform(2, 6)
         self.in_progress = 1
         
-        #print(self.other_bettors)
-        
         for bettor in self.other_bettors:
             bettor.in_conversation = 1
             
@@ -364,45 +362,37 @@ class GroupConversation:
         self.degrees_of_connection = []
         for bettor in self.other_bettors:
             self.degrees_of_connection.append(bettor.degree_of_connection)
+            
+        self.temp_group_interaction_log = {'type': [], 
+                                          'conv_id': [], 
+                                          'time': [], 
+                                          'length': [],
+                                          'bettor1': [], 
+                                          'bettor1_id': [],
+                                          'b1_local_op': [], 
+                                          'num_bettors': [],
+                                          'bettors': [],
+                                          'bettors_ids': [],
+                                          'degs_of_connection': [],
+                                          'bettors_local_ops': [],
+                                          'bettors_expressed_ops': [],
+                                          #'local_op_gap': [],
+                                          'weights': [],
+                                          'ops_x_weights': [],
+                                          'b1_new_local_op': [],
+                                          'b1_op_change': []}
         
         
     
     def group_change_local_opinions(self):
-
-        if self.model == 'fuzzy_BC':
-            self.group_fuzzy_bounded_confidence_step(delta, FUZZY_MFX)  
-            
-        else:
-            return print('Group OD model does not exist')
-
-    # mfx is triangular currently
-    def group_fuzzy_bounded_confidence_step(self, delta, mfx):
+        
                
-        temp_group_interaction_log = {'type': [], 
-                                      'conv_id': [], 
-                                      'time': [], 
-                                      'length': [],
-                                      'bettor1': [], 
-                                      'bettor1_id': [],
-                                      'b1_local_op': [], 
-                                      'num_bettors': [],
-                                      'bettors': [],
-                                      'bettors_ids': [],
-                                      'degs_of_connection': [],
-                                      'bettors_local_ops': [],
-                                      'bettors_expressed_ops': [],
-                                      #'local_op_gap': [],
-                                      'weights': [],
-                                      'ops_x_weights': [],
-                                      'b1_new_local_op': [],
-                                      'b1_op_change': []}
-       
-        temp_group_interaction_log['type'].append(self.model)         
-        temp_group_interaction_log['conv_id'].append(self.id)         
-        temp_group_interaction_log['time'].append(round(self.start_time, 2))
-        temp_group_interaction_log['length'].append(round(self.conversation_length, 2))        
-        temp_group_interaction_log['bettor1'].append(str(self.bettor_initiator).lstrip("<betting_agents.Agent_Opinionated_").split().pop(0))
-        temp_group_interaction_log['bettor1_id'].append(self.bettor_initiator.shuffled_id)    
+        self.temp_group_interaction_log['type'].append(self.model)         
+        self.temp_group_interaction_log['conv_id'].append(self.id)         
+        self.temp_group_interaction_log['time'].append(round(self.start_time, 2))
+        self.temp_group_interaction_log['length'].append(round(self.conversation_length, 2))        
+        self.temp_group_interaction_log['bettor1'].append(str(self.bettor_initiator).lstrip("<betting_agents.Agent_Opinionated_").split().pop(0))
+        self.temp_group_interaction_log['bettor1_id'].append(self.bettor_initiator.shuffled_id)    
         
         reduced_names = []
         bettors_ids = []
@@ -413,58 +403,101 @@ class GroupConversation:
         
         #print('group conv id: ', self.id, 'num other bettors: ', len(self.other_bettors))
         
-        temp_group_interaction_log['num_bettors'].append(len(self.other_bettors))
-        temp_group_interaction_log['bettors'].append(reduced_names)
-        temp_group_interaction_log['bettors_ids'].append(bettors_ids)
-        temp_group_interaction_log['degs_of_connection'].append(self.degrees_of_connection)
+        self.temp_group_interaction_log['num_bettors'].append(len(self.other_bettors))
+        self.temp_group_interaction_log['bettors'].append(reduced_names)
+        self.temp_group_interaction_log['bettors_ids'].append(bettors_ids)
+        self.temp_group_interaction_log['degs_of_connection'].append(self.degrees_of_connection)
+
+        if self.model == 'BC':
+            self.group_bounded_confidence_step(mu, delta) 
+        elif self.model == 'fuzzy_BC':
+            self.group_fuzzy_bounded_confidence_step(FUZZY_MFX)  
+            
+        else:
+            return print('Group OD model does not exist')
         
-        #print('group conv id: ', self.id, 'bettor_initiator local op ', self.bettor_initiator.local_opinion)
+    def group_bounded_confidence_step(self, mu, delta):
         
         X_i = self.bettor_initiator.local_opinion
-        #print('priveleged bettor local opinion: ', X_i)
-        #print('group conv id: ', self.id, 'bettor_initiator local op ', self.bettor_initiator.local_opinion)
-        #print('group conv id: ', self.id, 'bettor_initiator local op ', X_i)
-        
-        temp_group_interaction_log['b1_local_op'].append(round(X_i, 2))
+        self.temp_group_interaction_log['b1_local_op'].append(round(X_i, 2))
         
         
         group_local_opinions = [round(bettor.local_opinion, 2) for bettor in self.other_bettors]
-        #print('group conv id: ', self.id, 'num other bettors: ', len(self.other_bettors))
-        #print('group conv id: ', self.id, 'group local opinions: ', self.group_local_opinions)
-        temp_group_interaction_log['bettors_local_ops'].append(group_local_opinions)
+        self.temp_group_interaction_log['bettors_local_ops'].append(group_local_opinions)
         
         if self.muddle_opinions == 'yes':
             group_local_opinions = [round(self.ambiguous_opinion(bettor.local_opinion), 2) for bettor in self.other_bettors]
-            temp_group_interaction_log['bettors_expressed_ops'].append(group_local_opinions)    
+            self.temp_group_interaction_log['bettors_expressed_ops'].append(group_local_opinions)    
         else:
-            temp_group_interaction_log['bettors_expressed_ops'].append(group_local_opinions)
+            self.temp_group_interaction_log['bettors_expressed_ops'].append(group_local_opinions)
+
+        weights = []
+
+        for local_op in group_local_opinions:
+            opinion_gap = abs(X_i - local_op)
+    
+            # if difference in opinion is within deviation threshold
+            if opinion_gap <= delta:
+                weights.append(1)   
+            elif opinion_gap > delta:
+                weights.append(0)
+                
+        ops_x_weights = [group_local_opinions[i]*weights[i] for i in range(len(self.other_bettors))]
+                
+        self_weight = 1
+        weights.append(self_weight)
+        self.temp_group_interaction_log['weights'].append(weights)
+        
+        self_update = X_i*self_weight
+        ops_x_weights.append(self_update)
+        self.temp_group_interaction_log['ops_x_weights'].append(ops_x_weights)
+        
+        num_non_zero_weights = weights.count(1)
+        
+        new_xi_opinion = sum(ops_x_weights)/num_non_zero_weights
+        
+        self.temp_group_interaction_log['b1_new_local_op'].append(round(new_xi_opinion, 2))
+        
+        self.temp_group_interaction_log['b1_op_change'].append(round(new_xi_opinion - X_i, 2))
+        
+        
+        # append temporary log dict to actual interaction log dict
+        # necessary to do this way as conversations vary in length so done this way
+        # to correctly keep each row of data together
+        for key, value in self.temp_group_interaction_log.items():
+            self.interaction_log[key].append(value[0])
+            
+
+        
+
+    # mfx is triangular currently
+    def group_fuzzy_bounded_confidence_step(self, delta, mfx):
+               
+        X_i = self.bettor_initiator.local_opinion
+        self.temp_group_interaction_log['b1_local_op'].append(round(X_i, 2))
+        
+        
+        group_local_opinions = [round(bettor.local_opinion, 2) for bettor in self.other_bettors]
+        self.temp_group_interaction_log['bettors_local_ops'].append(group_local_opinions)
+        
+        if self.muddle_opinions == 'yes':
+            group_local_opinions = [round(self.ambiguous_opinion(bettor.local_opinion), 2) for bettor in self.other_bettors]
+            self.temp_group_interaction_log['bettors_expressed_ops'].append(group_local_opinions)    
+        else:
+            self.temp_group_interaction_log['bettors_expressed_ops'].append(group_local_opinions)
         
 
         dfz_weights = []
-        
-        #group_avg_opinion = np.mean(group_local_opinions)
 
         for bettor in self.other_bettors:
-            
             X_j = bettor.local_opinion
-            
             opinion_gap = abs(X_i - X_j)
-            
             fuzzy_bc = fuzzy_BC()
- 
             fuzzy_set = fuzzy_bc.fuzzification(mfx, opinion_gap, weight_segmentation = 'b')
-            
             w = fuzzy_bc.defuzzification(fuzzy_set, method = 'centroid')
-            
             dfz_weights.append(w)
             
-        #for bettor in self.group_bettors:
-            #if bettor.influenced_by_opinions == 1: # accounts for if there is more than one RP(d) bettor in conv
-            
         ops_x_weights = [group_local_opinions[i]*dfz_weights[i] for i in range(len(self.other_bettors))]
-        
-        
-        #self.num_bettors = len(self.other_bettors)
         
         # self weight to be placed on new opinion calculation - opinion gap of zero
         #self_weight = fuzzy_bc.fuzzification(mfx, 0) 
@@ -472,51 +505,24 @@ class GroupConversation:
         # dont fuzzify opinion gap 0 for self weight, should just be 1
         self_weight = 1
         dfz_weights.append(self_weight)
-        temp_group_interaction_log['weights'].append(dfz_weights)
+        self.temp_group_interaction_log['weights'].append(dfz_weights)
         
         self_update = X_i*self_weight
         ops_x_weights.append(self_update)
-        temp_group_interaction_log['ops_x_weights'].append(ops_x_weights)
+        self.temp_group_interaction_log['ops_x_weights'].append(ops_x_weights)
         
         new_xi_opinion = sum(ops_x_weights)/sum(dfz_weights)
-        
-        
-        #print('priveleged bettor local opinion: ', X_i)
-        
-        #print('group local opinions: ', group_local_opinions)
-            
-        
-        #print('group conv id: ', self.id, 'dfz weights: ', self.dfz_weights)
-        
-        #print('Numerator: ', sum(X_i_updates)) 
-        #print('Denominator: ', num_bettors)  
-        
-        # have been seting by number of bettors - THIS PRODUCES VERY LOW OUTPUTS FOR PRIV BETTORS
-        #self.new_xi_opinion = sum(self.X_i_updates)/self.num_bettors
-        #self.new_xi_opinion = sum(self.X_i_updates)/sum(self.dfz_weights)
-        
-        #print('group conv id: ', self.id, 'b1 new opinion: ', self.new_xi_opinion)
 
-        temp_group_interaction_log['b1_new_local_op'].append(round(new_xi_opinion, 2))
+        self.temp_group_interaction_log['b1_new_local_op'].append(round(new_xi_opinion, 2))
         
-        temp_group_interaction_log['b1_op_change'].append(round(new_xi_opinion - X_i, 2))
-        
-        # HAVE NEW OPINION TAKE INTO ACCOUNT OLD OPINION
-        #new_opinion = 
-        
-        #print('new X_i opinion: ', new_xi_opinion)
+        self.temp_group_interaction_log['b1_op_change'].append(round(new_xi_opinion - X_i, 2))
         
         self.bettor_initiator.set_opinion(new_xi_opinion)
-        
-        
-        #print('temp log: ', temp_group_interaction_log)
-        #print()
-        #print('actual log: ', self.interaction_log)
-            
+
         # append temporary log dict to actual interaction log dict
         # necessary to do this way as conversations vary in length so done this way
         # to correctly keep each row of data together
-        for key, value in temp_group_interaction_log.items():
+        for key, value in self.temp_group_interaction_log.items():
             self.interaction_log[key].append(value[0])
             
             
