@@ -10,7 +10,7 @@ import numpy as np
 import skfuzzy as fuzz
 import matplotlib.pyplot as plt
 
-class fuzzy_BC:
+class fuzzy_logic:
     
     def __init__(self):
         

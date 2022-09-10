@@ -63,7 +63,7 @@ oneagents = [
           ('Agent_Opinionated_Priviledged', 1)
           ]
 
-agents = [ 
+fiveagents = [ 
           ('Agent_Opinionated_Random', 5),
           ('Agent_Opinionated_Leader_Wins', 5),
           ('Agent_Opinionated_Underdog', 5),
@@ -72,7 +72,7 @@ agents = [
           ('Agent_Opinionated_Priviledged', 5)
           ]
 
-tenagents = [ 
+agents = [ 
           ('Agent_Opinionated_Random', 10),
           ('Agent_Opinionated_Leader_Wins', 10),
           ('Agent_Opinionated_Underdog', 10),

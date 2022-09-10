@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from network_structures import *
-from fuzzy_BC import *
+from fuzzy_logic import *
 
 
 def calculate_ema(odds, timesteps, smoothing=2):
@@ -257,10 +257,10 @@ class LocalConversation:
         opinion_gap = abs(X_i - X_j)
         self.temp_pairwise_interaction_log['local_op_gap'].append(round(opinion_gap, 2))
                 
-        fuzzy_bc = fuzzy_BC()
+        fuzzy_system = fuzzy_logic()
         # weight segmentations are a,b,c,d for researchers fuzzy rules, a1 for designed rules
-        fuzzy_set = fuzzy_bc.fuzzification(mfx, opinion_gap, weight_segmentation = 'a1')
-        w = fuzzy_bc.defuzzification(fuzzy_set, method = 'centroid')
+        fuzzy_set = fuzzy_system.fuzzification(mfx, opinion_gap, weight_segmentation = 'a1')
+        w = fuzzy_system.defuzzification(fuzzy_set, method = 'centroid')
         self.temp_pairwise_interaction_log['weight'].append(round(w, 2))
         
         if self.bettor1.influenced_by_opinions == 1:
@@ -492,9 +492,9 @@ class GroupConversation:
         for bettor in self.other_bettors:
             X_j = bettor.local_opinion
             opinion_gap = abs(X_i - X_j)
-            fuzzy_bc = fuzzy_BC()
-            fuzzy_set = fuzzy_bc.fuzzification(mfx, opinion_gap, weight_segmentation = 'b')
-            w = fuzzy_bc.defuzzification(fuzzy_set, method = 'centroid')
+            fuzzy_system = fuzzy_logic()
+            fuzzy_set = fuzzy_system.fuzzification(mfx, opinion_gap, weight_segmentation = 'b')
+            w = fuzzy_system.defuzzification(fuzzy_set, method = 'centroid')
             dfz_weights.append(w)
             
         ops_x_weights = [group_local_opinions[i]*dfz_weights[i] for i in range(len(self.other_bettors))]

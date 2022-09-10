@@ -275,7 +275,7 @@ class Session:
                 #print(agent, agent.id, agent.shuffled_id)
                 
         elif SHUFFLE == 'no':
-            # even if shuffle = 'no', assign shuffled id as regular id to simplify code elsewhere
+            # even if shuffle = 'no', assign a shuffled id as regular id to simplify code elsewhere
             for i in range(len(self.bettingAgents.values())):
                 agent = list(self.bettingAgents.values())[i]
                 agent.shuffled_id = agent.id
