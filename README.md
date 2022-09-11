@@ -11,8 +11,8 @@ in exact numbers as in traditional opinion dynamics models, but in language that
 how opinions are communicated. This method builds upon the Bounded Confidence (opinion dynamics
 model by using utilising a fuzzy logic system for the determination of agent-specific interaction weights.
 In addition to exploring the effects of this model within BBE, we introduce a method that introduces
-varying degrees of ambiguity into interactions before they occur. To further increase the realism of the in-
-teractions between agents, a network structure is implemented into the population via the Watts-Strogatz
+varying degrees of ambiguity into interactions before they occur. To further increase the realism of the 
+interactions between agents, a network structure is implemented into the population via the Watts-Strogatz
 method. The impact of using such a structure in selecting the agent-bettors for an interaction is explored,
 from a completely random process to the direct neighbours of an agent. A novel method for selecting
 participants based on their degree of connection to the bettor initiating the interaction is then explored
